@@ -1,3 +1,6 @@
+import { isBefore, isAfter, isEqual, parseISO } from 'date-fns'
+import { Circle } from 'lucide-react'
+
 interface MatchCardProps {
   channels: {
     id: number
@@ -38,12 +41,48 @@ export function MatchCard({
 }) {
   const { channels, time, date, competition, home_team, away_team } = match
 
+  // Combine date and time into an ISO string and parse
+  const matchDateTime = parseISO(`${date}T${time}`)
+  const now = new Date()
+
+  const isMatchInPast = isBefore(matchDateTime, now)
+  const isMatchInFuture = isAfter(matchDateTime, now)
+  const isMatchOngoing = !isMatchInPast && !isMatchInFuture
+
+  console.log(
+    'home_team',
+    home_team,
+    isMatchInFuture,
+    isMatchInPast,
+    isMatchOngoing,
+  )
+
+  const matchStatusBorderColor = {
+    finished: 'border-red-500',
+    ongoing: 'border-green-500',
+    upcoming: 'border-blue-500',
+  }
+
+  function getMatchStatus() {
+    if (isMatchInPast) return 'finished'
+    if (isMatchOngoing) return 'ongoing'
+    if (isMatchInFuture) return 'upcoming'
+    return 'upcoming'
+  }
+
   return (
     <div
-      className={`bg-white dark:bg-gray-800 shadow-md p-4 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col ${
+      className={`bg-white dark:bg-gray-800 shadow-md p-4 rounded-lg flex flex-col ${
         view === 'list' ? 'sm:flex-row sm:justify-between sm:items-center' : ''
-      }`}>
+      } ${matchStatusBorderColor[getMatchStatus()]} ${isMatchInPast && 'opacity-40'} border-l-4`}>
       <div className={`flex-1 ${view === 'grid' ? 'mb-3' : 'mb-0'}`}>
+        {isMatchOngoing && (
+          <div className="flex items-center space-x-2 mb-2">
+            <span className="text-white text-xs font-bold px-3 py-1 rounded bg-red-500 animate-pulse-slow tracking-wide">
+              &#9675; LIVE
+            </span>
+          </div>
+        )}
         <p
           className={`text-lg ${view === 'grid' ? 'sm:text-s' : 'sm:text-xl'} font-bold text-gray-900 dark:text-gray-100`}>
           {home_team.name} vs {away_team.name}
