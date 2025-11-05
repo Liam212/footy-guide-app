@@ -29,40 +29,46 @@ interface MatchCardProps {
   }
 }
 
-export function MatchCard({ match }: { match: MatchCardProps }) {
-  const { channels, time, date, competition, country, home_team, away_team } =
-    match
+export function MatchCard({
+  match,
+  view = 'list',
+}: {
+  match: MatchCardProps
+  view?: 'list' | 'grid'
+}) {
+  const { channels, time, date, competition, home_team, away_team } = match
 
   return (
-    <div className="bg-white dark:bg-gray-800 shadow-md p-1 flex flex-col sm:flex-row sm:items-center sm:justify-between sm:space-y-0 sm:space-x-4 border border-gray-200 dark:border-gray-700">
-      <div className="flex-1">
-        <p className="text-sm sm:text-base font-bold text-gray-600 dark:text-gray-300 mb-1">
+    <div
+      className={`bg-white dark:bg-gray-800 shadow-md p-4 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col ${
+        view === 'list' ? 'sm:flex-row sm:justify-between sm:items-center' : ''
+      }`}>
+      <div className={`flex-1 ${view === 'grid' ? 'mb-3' : 'mb-0'}`}>
+        <p
+          className={`text-lg ${view === 'grid' ? 'sm:text-s' : 'sm:text-xl'} font-bold text-gray-900 dark:text-gray-100`}>
           {home_team.name} vs {away_team.name}
         </p>
-
-        <p className="text-xs sm:text-base font-light text-gray-800 dark:text-gray-100">
+        <p
+          className={`text-sm ${view === 'grid' ? 'sm:text-xs' : 'sm:text-base '} text-gray-600 dark:text-gray-300 mt-1`}>
           {competition.name}
         </p>
-        <div className="flex items-center space-x-2 mt-1">
+        <div className="flex flex-wrap mt-2 gap-2">
           {channels.map(channel => (
-            <div
+            <span
               key={channel.id}
-              className="px-2 py-.5 rounded"
+              className="px-2 py-0.5 rounded text-xs font-semibold"
               style={{
                 backgroundColor: channel.primary_color,
                 border: `1px solid ${channel.secondary_color}`,
+                color: channel.text_color,
               }}>
-              <span
-                className="text-sm font-semibold text-xs"
-                style={{ color: channel.text_color }}>
-                {channel.name}
-              </span>
-            </div>
+              {channel.name}
+            </span>
           ))}
         </div>
       </div>
 
-      <div className="flex flex-col items-start sm:items-end text-gray-600 dark:text-gray-300 text-sm">
+      <div className="flex flex-col items-start sm:items-end text-gray-700 dark:text-gray-300 text-sm sm:text-base">
         <span>{time}</span>
         <span>{date}</span>
       </div>

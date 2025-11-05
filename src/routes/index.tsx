@@ -4,22 +4,18 @@ import { queryOptions, useQuery } from '@tanstack/react-query'
 import { api } from '../api'
 import { DateSelector, MatchCard } from '../components'
 import { startOfToday } from 'date-fns'
-
-const matchesQuery = queryOptions({
-  queryKey: ['matches'],
-  queryFn: () => api.get('/matches').then(r => r.data),
-})
+import { List, LayoutGrid } from 'lucide-react'
 
 export const Route = createFileRoute('/')({
-  loader: ({ context }) => context.queryClient.ensureQueryData(matchesQuery),
   component: RouteComponent,
 })
 
 function RouteComponent() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(startOfToday())
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
 
   const { data, isLoading } = useQuery({
-    queryKey: ['matches', selectedDate],
+    queryKey: ['matches', selectedDate?.toISOString().split('T')[0] ?? 'all'],
     queryFn: async () => {
       const params: Record<string, string> = {}
       if (selectedDate) {
@@ -27,7 +23,6 @@ function RouteComponent() {
         params.start_date = formatted
         params.end_date = formatted
       }
-
       const res = await api.get('/matches', { params })
       return res.data
     },
@@ -35,19 +30,57 @@ function RouteComponent() {
     refetchOnWindowFocus: false,
   })
 
-  return (
-    <div className="bg-gray-950 min-h-screen p-4 max-w-2xl mx-auto">
-      <DateSelector onSelect={setSelectedDate} initialDate="today" />
-
-      {isLoading ? (
-        <p className="text-white mt-4">Loading...</p>
-      ) : (
-        <div className="flex flex-col mt-4">
+  function renderMatches() {
+    if (viewMode === 'list') {
+      return (
+        <div className="flex flex-col mt-6 space-y-4">
           {data.map((match: any) => (
             <MatchCard key={match.id} match={match} />
           ))}
         </div>
-      )}
+      )
+    } else {
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
+          {data.map((match: any) => (
+            <MatchCard key={match.id} match={match} view={viewMode} />
+          ))}
+        </div>
+      )
+    }
+  }
+
+  return (
+    <div className="bg-gray-50 dark:bg-gray-900 ">
+      <div className="min-h-screen p-4 md:p-8 max-w-4xl mx-auto">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+          Matches
+        </h1>
+
+        <DateSelector onSelect={setSelectedDate} initialDate="today" />
+
+        <div className="flex justify-end">
+          <button
+            onClick={() =>
+              setViewMode(prev => (prev === 'list' ? 'grid' : 'list'))
+            }
+            className="mt-4 p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition focus:outline-none focus:ring-2 focus:ring-blue-400 flex items-center space-x-2">
+            {viewMode === 'list' ? <LayoutGrid /> : <List />}
+          </button>
+        </div>
+
+        {isLoading ? (
+          <p className="text-gray-700 dark:text-gray-300 mt-6">
+            Loading matches...
+          </p>
+        ) : data?.length === 0 ? (
+          <p className="text-gray-700 dark:text-gray-300 mt-6">
+            No matches found.
+          </p>
+        ) : (
+          renderMatches()
+        )}
+      </div>
     </div>
   )
 }
