@@ -40,16 +40,14 @@ export function MatchCard({
 }) {
   const { channels, time, date, competition, home_team, away_team } = match
 
-  // Combine date and time into an ISO string and parse
   const matchDateTime = parseISO(`${date}T${time}`)
-  const now = new Date()
-  const dateAfterGameStart = addHours(matchDateTime, 2)
-
   // Assume a match lasts 2hrs until detailed data is available
+  const matchEndTime = addHours(matchDateTime, 2)
+  const now = new Date()
 
-  const isMatchInPast = isBefore(matchDateTime, now)
-  const isMatchInFuture = isAfter(matchDateTime, dateAfterGameStart)
-  const isMatchOngoing = !isMatchInPast && !isMatchInFuture
+  const isMatchInFuture = isAfter(matchDateTime, now)
+  const isMatchInPast = isBefore(matchEndTime, now)
+  const isMatchOngoing = !isMatchInFuture && !isMatchInPast
 
   const matchStatusBorderColor = {
     finished: 'border-red-500',
