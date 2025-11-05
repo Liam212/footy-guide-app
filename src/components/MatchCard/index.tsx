@@ -49,8 +49,8 @@ export function MatchCard({
   const isMatchOngoing =
     !isMatchInPast &&
     !isMatchInFuture &&
-    // Assume a match lasts 90 minutes until detailed data is available
-    Math.abs(now.getTime() - matchDateTime.getTime()) < 90 * 60 * 1000
+    // Assume a match lasts 2hrs until detailed data is available
+    Math.abs(now.getTime() - matchDateTime.getTime()) < 120 * 60 * 1000
 
   console.log(
     'home_team',
