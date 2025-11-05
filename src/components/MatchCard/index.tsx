@@ -1,4 +1,4 @@
-import { isBefore, isAfter, parseISO } from 'date-fns'
+import { isBefore, isAfter, parseISO, addHours } from 'date-fns'
 
 interface MatchCardProps {
   channels: {
@@ -43,22 +43,13 @@ export function MatchCard({
   // Combine date and time into an ISO string and parse
   const matchDateTime = parseISO(`${date}T${time}`)
   const now = new Date()
+  const dateAfterGameStart = addHours(matchDateTime, 2)
+
+  // Assume a match lasts 2hrs until detailed data is available
 
   const isMatchInPast = isBefore(matchDateTime, now)
-  const isMatchInFuture = isAfter(matchDateTime, now)
-  const isMatchOngoing =
-    !isMatchInPast &&
-    !isMatchInFuture &&
-    // Assume a match lasts 2hrs until detailed data is available
-    Math.abs(now.getTime() - matchDateTime.getTime()) < 120 * 60 * 1000
-
-  console.log(
-    'home_team',
-    home_team,
-    isMatchInFuture,
-    isMatchInPast,
-    isMatchOngoing,
-  )
+  const isMatchInFuture = isAfter(matchDateTime, dateAfterGameStart)
+  const isMatchOngoing = !isMatchInPast && !isMatchInFuture
 
   const matchStatusBorderColor = {
     finished: 'border-red-500',
