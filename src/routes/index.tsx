@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../api'
 import { DateSelector, MatchCard } from '../components'
 import { startOfToday } from 'date-fns'
@@ -13,6 +13,7 @@ export const Route = createFileRoute('/')({
 function RouteComponent() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(startOfToday())
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
+  const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery({
     queryKey: ['matches', selectedDate?.toISOString().split('T')[0] ?? 'all'],
@@ -29,6 +30,20 @@ function RouteComponent() {
     staleTime: 1000 * 10,
     refetchOnWindowFocus: false,
   })
+
+  const prefetchMatches = (date: Date) => {
+    queryClient.prefetchQuery({
+      queryKey: ['matches', date.toISOString().split('T')[0]],
+      queryFn: async () => {
+        const formatted = date.toISOString().split('T')[0]
+        const res = await api.get('/matches', {
+          params: { start_date: formatted, end_date: formatted },
+        })
+        return res.data
+      },
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    })
+  }
 
   function renderMatches() {
     if (viewMode === 'list') {
@@ -57,7 +72,11 @@ function RouteComponent() {
           Matches
         </h1>
 
-        <DateSelector onSelect={setSelectedDate} initialDate="today" />
+        <DateSelector
+          onSelect={setSelectedDate}
+          initialDate="today"
+          onMouseEnterDate={prefetchMatches}
+        />
 
         <div className="flex justify-end">
           <button

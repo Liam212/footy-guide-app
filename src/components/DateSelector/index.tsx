@@ -4,9 +4,14 @@ import { format, addDays, startOfToday, startOfWeek } from 'date-fns'
 interface DateSelectorProps {
   onSelect: (date: Date) => void
   initialDate?: Date | 'start' | 'today'
+  onMouseEnterDate?: (date: Date) => void
 }
 
-export function DateSelector({ onSelect, initialDate }: DateSelectorProps) {
+export function DateSelector({
+  onSelect,
+  initialDate,
+  onMouseEnterDate,
+}: DateSelectorProps) {
   const [startDate, setStartDate] = useState(startOfToday())
   const [selectedDate, setSelectedDate] = useState(
     initialDate === 'start'
@@ -47,6 +52,7 @@ export function DateSelector({ onSelect, initialDate }: DateSelectorProps) {
             <button
               key={day.getTime()}
               onClick={() => handleSelect(day)}
+              onMouseEnter={() => onMouseEnterDate && onMouseEnterDate(day)}
               className={`flex flex-col items-center p-2 min-w-[3rem] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-blue-500
                 ${
                   isSelected
