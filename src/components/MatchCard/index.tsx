@@ -1,5 +1,4 @@
-import { isBefore, isAfter, isEqual, parseISO } from 'date-fns'
-import { Circle } from 'lucide-react'
+import { isBefore, isAfter, parseISO } from 'date-fns'
 
 interface MatchCardProps {
   channels: {
