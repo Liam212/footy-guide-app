@@ -4,7 +4,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../api'
 import { DateSelector, MatchCard } from '../components'
 import { startOfToday } from 'date-fns'
-import { List, LayoutGrid } from 'lucide-react'
+import { List, LayoutGrid, Filter } from 'lucide-react'
+import Filters from '../components/Filters'
+import qs from 'qs'
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,
@@ -13,18 +15,43 @@ export const Route = createFileRoute('/')({
 function RouteComponent() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(startOfToday())
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
+  const [selectedCompetitions, setSelectedCompetitions] = useState<string[]>([])
   const queryClient = useQueryClient()
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['matches', selectedDate?.toISOString().split('T')[0] ?? 'all'],
+  const { data: competitions } = useQuery({
+    queryKey: ['competitions', 'country_id=1'],
     queryFn: async () => {
-      const params: Record<string, string> = {}
+      const res = await api.get('/competitions', { params: { country_id: 2 } })
+      return res.data
+    },
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+  })
+
+  const { data, isLoading } = useQuery({
+    queryKey: [
+      'matches',
+      selectedDate?.toISOString().split('T')[0] ?? 'all',
+      selectedCompetitions,
+    ],
+    queryFn: async () => {
+      const params: Record<string, string | string[]> = {}
+
       if (selectedDate) {
         const formatted = selectedDate.toISOString().split('T')[0]
         params.start_date = formatted
         params.end_date = formatted
       }
-      const res = await api.get('/matches', { params })
+
+      if (selectedCompetitions.length > 0) {
+        params.competition_ids = selectedCompetitions
+      }
+
+      const res = await api.get('/matches', {
+        params,
+        paramsSerializer: params =>
+          qs.stringify(params, { arrayFormat: 'repeat' }),
+      })
       return res.data
     },
     staleTime: 1000 * 10,
@@ -66,7 +93,7 @@ function RouteComponent() {
   }
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 ">
+    <div className="bg-gray-50 dark:bg-gray-900">
       <div className="min-h-screen p-4 md:p-8 max-w-4xl mx-auto">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           Matches
@@ -87,6 +114,12 @@ function RouteComponent() {
             {viewMode === 'list' ? <LayoutGrid /> : <List />}
           </button>
         </div>
+
+        <Filters
+          exclude={['countries', 'channels']}
+          competitions={competitions}
+          onCompetitionChange={setSelectedCompetitions}
+        />
 
         {isLoading ? (
           <p className="text-gray-700 dark:text-gray-300 mt-6">

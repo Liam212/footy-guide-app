@@ -28,17 +28,17 @@ declare module '@tanstack/react-router' {
 const rootElement = document.getElementById('root')!
 if (!rootElement.innerHTML) {
   const root = createRoot(rootElement)
+  const isLocalhost = window.location.hostname === 'localhost'
   root.render(
     <StrictMode>
       <PostHogProvider
         apiKey={import.meta.env.VITE_PUBLIC_POSTHOG_KEY}
         options={{
-          api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+          api_host: isLocalhost ? '' : import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
           defaults: '2025-05-24',
           capture_exceptions: true,
-          debug: import.meta.env.MODE === 'development',
-        }}
-      >
+          debug: isLocalhost,
+        }}>
         <QueryClientProvider client={queryClient}>
           <RouterProvider router={router} />
           <ReactQueryDevtools buttonPosition="bottom-right" />

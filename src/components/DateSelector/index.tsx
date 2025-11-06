@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { format, addDays, startOfToday, startOfWeek } from 'date-fns'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 
 interface DateSelectorProps {
   onSelect: (date: Date) => void
@@ -37,42 +38,53 @@ export function DateSelector({
   const days = Array.from({ length: 7 }).map((_, i) => addDays(startDate, i))
 
   return (
-    <div className="flex items-center w-full bg-gray-100 dark:bg-gray-800 p-2 rounded-lg mt-4">
-      <button
-        onClick={handlePrev}
-        aria-label="Previous week"
-        className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500">
-        &#8592;
-      </button>
+    <div>
+      <p className="font-semibold text-white text-center">
+        {format(selectedDate, 'MMMM yyyy')}
+      </p>
 
-      <div className="flex flex-1 mx-2 space-x-2 overflow-x-auto">
-        {days.map(day => {
-          const isSelected = day.toDateString() === selectedDate.toDateString()
-          return (
-            <button
-              key={day.getTime()}
-              onClick={() => handleSelect(day)}
-              onMouseEnter={() => onMouseEnterDate && onMouseEnterDate(day)}
-              className={`flex flex-col items-center p-2 min-w-[3rem] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-blue-500
+      <div className="flex items-center w-full bg-gray-100 dark:bg-gray-800 p-3 rounded-lg mt-4">
+        <button
+          onClick={handlePrev}
+          aria-label="Previous week"
+          className="text-white p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 bg-gray-600 transition focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <ArrowLeft />
+        </button>
+
+        <div className="flex flex-1 mx-2 space-x-2 justify-center">
+          {days.map(day => {
+            const isSelected =
+              day.toDateString() === selectedDate.toDateString()
+            return (
+              <button
+                key={day.getTime()}
+                onClick={() => handleSelect(day)}
+                onMouseEnter={() => onMouseEnterDate && onMouseEnterDate(day)}
+                className={`flex flex-col items-center p-2 min-w-[3rem] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-blue-500
                 ${
                   isSelected
                     ? 'bg-blue-500 text-white'
                     : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }
               `}>
-              <span className="text-sm font-medium">{format(day, 'EEE')}</span>
-              <span className="text-lg font-semibold">{format(day, 'd')}</span>
-            </button>
-          )
-        })}
-      </div>
+                <span className="text-sm font-medium">
+                  {format(day, 'EEE')}
+                </span>
+                <span className="text-lg font-semibold">
+                  {format(day, 'd')}
+                </span>
+              </button>
+            )
+          })}
+        </div>
 
-      <button
-        onClick={handleNext}
-        aria-label="Next week"
-        className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500">
-        &#8594;
-      </button>
+        <button
+          onClick={handleNext}
+          aria-label="Next week"
+          className="text-white p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 bg-gray-600 transition focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <ArrowRight />
+        </button>
+      </div>
     </div>
   )
 }
