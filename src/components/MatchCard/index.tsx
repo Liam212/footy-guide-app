@@ -7,6 +7,7 @@ interface MatchCardProps {
     primary_color: string
     secondary_color: string
     text_color: string
+    broadcaster_id: string
   }[]
   time: string
   date: string
@@ -85,16 +86,18 @@ export function MatchCard({
         </p>
         <div className="flex flex-wrap mt-2 gap-2">
           {channels.map(channel => (
-            <span
-              key={channel.id}
-              className="px-2 py-0.5 rounded text-xs font-semibold"
-              style={{
-                backgroundColor: channel.primary_color,
-                border: `1px solid ${channel.secondary_color}`,
-                color: channel.text_color,
-              }}>
-              {channel.name}
-            </span>
+            <a href={`/broadcaster/${channel.broadcaster_id}`}>
+              <span
+                key={channel.id}
+                className="px-2 py-0.5 rounded text-xs font-semibold"
+                style={{
+                  backgroundColor: channel.primary_color,
+                  border: `1px solid ${channel.secondary_color}`,
+                  color: channel.text_color,
+                }}>
+                {channel.name}
+              </span>
+            </a>
           ))}
         </div>
       </div>

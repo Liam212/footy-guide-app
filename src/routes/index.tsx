@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { api } from '../api'
-import { DateSelector, MatchCard } from '../components'
 import { startOfToday } from 'date-fns'
-import { List, LayoutGrid, Filter } from 'lucide-react'
-import Filters from '../components/Filters'
-import qs from 'qs'
+import { List, LayoutGrid } from 'lucide-react'
+import { api } from '../api'
+import { DateSelector, MatchCard, Filters } from '../components'
+import serializeParams from '../helpers/serializeParams'
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,
@@ -15,13 +14,34 @@ export const Route = createFileRoute('/')({
 function RouteComponent() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(startOfToday())
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
-  const [selectedCompetitions, setSelectedCompetitions] = useState<string[]>([])
+  const [selectedCompetitions, setSelectedCompetitions] = useState<number[]>([])
+  const [selectedCountries, setSelectedCountries] = useState<number[]>([])
   const queryClient = useQueryClient()
 
-  const { data: competitions } = useQuery({
-    queryKey: ['competitions', 'country_id=1'],
+  const { data: countries } = useQuery({
+    queryKey: ['countries'],
     queryFn: async () => {
-      const res = await api.get('/competitions', { params: { country_id: 2 } })
+      const res = await api.get('/countries')
+      return res.data
+    },
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+  })
+
+  const { data: competitions } = useQuery({
+    queryKey: ['competitions', selectedCountries, selectedCountries],
+    queryFn: async () => {
+      const params: Record<string, string | string[] | number | number[]> = {}
+
+      if (selectedCountries.length > 0) {
+        params.country_ids = selectedCountries
+      }
+
+      const res = await api.get('/competitions', {
+        params,
+        paramsSerializer: serializeParams,
+      })
+
       return res.data
     },
     staleTime: 1000 * 60 * 5,
@@ -35,7 +55,7 @@ function RouteComponent() {
       selectedCompetitions,
     ],
     queryFn: async () => {
-      const params: Record<string, string | string[]> = {}
+      const params: Record<string, string | string[] | number | number[]> = {}
 
       if (selectedDate) {
         const formatted = selectedDate.toISOString().split('T')[0]
@@ -49,8 +69,7 @@ function RouteComponent() {
 
       const res = await api.get('/matches', {
         params,
-        paramsSerializer: params =>
-          qs.stringify(params, { arrayFormat: 'repeat' }),
+        paramsSerializer: serializeParams,
       })
       return res.data
     },
@@ -116,9 +135,11 @@ function RouteComponent() {
         </div>
 
         <Filters
-          exclude={['countries', 'channels']}
+          exclude={['channels']}
           competitions={competitions}
           onCompetitionChange={setSelectedCompetitions}
+          countries={countries}
+          onCountryChange={setSelectedCountries}
         />
 
         {isLoading ? (

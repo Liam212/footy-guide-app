@@ -36,8 +36,8 @@ if (!rootElement.innerHTML) {
         options={{
           api_host: isLocalhost ? '' : import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
           defaults: '2025-05-24',
-          capture_exceptions: true,
-          debug: isLocalhost,
+          capture_exceptions: !isLocalhost,
+          debug: false,
         }}>
         <QueryClientProvider client={queryClient}>
           <RouterProvider router={router} />

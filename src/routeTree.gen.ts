@@ -9,55 +9,48 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BroadcasterBroadcasterRouteImport } from './routes/broadcaster.$broadcaster'
 
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BroadcasterBroadcasterRoute = BroadcasterBroadcasterRouteImport.update({
+  id: '/broadcaster/$broadcaster',
+  path: '/broadcaster/$broadcaster',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
+  '/broadcaster/$broadcaster': typeof BroadcasterBroadcasterRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
+  '/broadcaster/$broadcaster': typeof BroadcasterBroadcasterRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
+  '/broadcaster/$broadcaster': typeof BroadcasterBroadcasterRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about'
+  fullPaths: '/' | '/broadcaster/$broadcaster'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about'
-  id: '__root__' | '/' | '/about'
+  to: '/' | '/broadcaster/$broadcaster'
+  id: '__root__' | '/' | '/broadcaster/$broadcaster'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
+  BroadcasterBroadcasterRoute: typeof BroadcasterBroadcasterRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -65,12 +58,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/broadcaster/$broadcaster': {
+      id: '/broadcaster/$broadcaster'
+      path: '/broadcaster/$broadcaster'
+      fullPath: '/broadcaster/$broadcaster'
+      preLoaderRoute: typeof BroadcasterBroadcasterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
+  BroadcasterBroadcasterRoute: BroadcasterBroadcasterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

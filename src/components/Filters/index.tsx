@@ -1,17 +1,17 @@
 import { useState } from 'react'
-import { Dropdown } from '../../primitives/Dropdown'
+import { DropdownMultiSelect } from '../../primitives/Dropdown'
 
 interface FiltersProps {
   exclude?: ('countries' | 'competitions' | 'channels')[]
   competitions?: { id: number; name: string }[]
   channels?: { id: number; name: string }[]
   countries?: { id: number; name: string }[]
-  onCountryChange?: (value: number) => void
+  onCountryChange?: (value: number[]) => void
   onCompetitionChange?: (value: number[]) => void
   onChannelChange?: (value: number[]) => void
 }
 
-export default function Filters({
+export function Filters({
   exclude = [],
   competitions = [],
   channels = [],
@@ -20,23 +20,23 @@ export default function Filters({
   onCompetitionChange,
   onChannelChange,
 }: FiltersProps) {
-  const [selectedCountry, setSelectedCountry] = useState<number | null>(null)
+  const [selectedCountry, setSelectedCountry] = useState<number[]>([])
   const [selectedCompetitions, setSelectedCompetitions] = useState<number[]>([])
   const [selectedChannels, setSelectedChannels] = useState<number[]>([])
 
-  const handleCountryChange = (value: number) => {
-    setSelectedCountry(value)
-    onCountryChange?.(value)
+  const handleCountryChange = (values: string[]) => {
+    setSelectedCountry(values.map(s => parseInt(s)))
+    onCountryChange?.(values.map(s => parseInt(s)))
   }
 
-  const handleCompetitionChange = (values: number[]) => {
-    setSelectedCompetitions(values)
-    onCompetitionChange?.(values)
+  const handleCompetitionChange = (values: string[]) => {
+    setSelectedCompetitions(values.map(s => parseInt(s)))
+    onCompetitionChange?.(values.map(s => parseInt(s)))
   }
 
-  const handleChannelChange = (values: number[]) => {
-    setSelectedChannels(values)
-    onChannelChange?.(values)
+  const handleChannelChange = (values: string[]) => {
+    setSelectedChannels(values.map(s => parseInt(s)))
+    onChannelChange?.(values.map(s => parseInt(s)))
   }
 
   return (
@@ -48,16 +48,19 @@ export default function Filters({
             className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Country
           </label>
-          <Dropdown
+          <DropdownMultiSelect
+            // @ts-expect-error
             options={countries.map(c => ({
               key: c.id.toString(),
-              value: c.id, // 🔹 pass numeric ID
+              value: c.id,
               label: c.name,
             }))}
-            value={selectedCountry ?? undefined}
+            // @ts-expect-error
+            value={selectedCountry}
             onChange={handleCountryChange}
-            placeholder="All Countries"
+            placeholder="Select countries"
             className="w-full"
+            searchable // enable search input
           />
         </div>
       )}
@@ -69,17 +72,18 @@ export default function Filters({
             className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Competitions
           </label>
-          <Dropdown
+          <DropdownMultiSelect
+            // @ts-expect-error
             options={competitions.map(c => ({
               key: c.id.toString(),
-              value: c.id, // 🔹 numeric ID
+              value: c.id,
               label: c.name,
             }))}
+            // @ts-expect-error
             value={selectedCompetitions}
             onChange={handleCompetitionChange}
             placeholder="All Competitions"
             className="w-full"
-            multiSelect
           />
         </div>
       )}
@@ -91,17 +95,18 @@ export default function Filters({
             className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Channels
           </label>
-          <Dropdown
+          <DropdownMultiSelect
+            // @ts-expect-error
             options={channels.map(c => ({
               key: c.id.toString(),
-              value: c.value, // 🔹 numeric ID
-              label: c.label,
+              value: c.id,
+              label: c.name,
             }))}
+            // @ts-expect-error
             value={selectedChannels}
             onChange={handleChannelChange}
             placeholder="All Channels"
             className="w-full"
-            multiSelect
           />
         </div>
       )}
