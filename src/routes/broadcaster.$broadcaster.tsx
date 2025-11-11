@@ -3,7 +3,6 @@ import isNumeric from '../helpers/isNumeric'
 import { api } from '../api'
 import type { Channel } from '../types'
 
-// @ts-expect-error - No idea whats going on here it looks fine
 export const Route = createFileRoute('/broadcaster/$broadcaster')({
   loader: async ({ params }) => {
     const { broadcaster } = params as { broadcaster: string }
