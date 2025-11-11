@@ -16,6 +16,8 @@ function RouteComponent() {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
   const [selectedCompetitions, setSelectedCompetitions] = useState<number[]>([])
   const [selectedCountries, setSelectedCountries] = useState<number[]>([])
+  const [selectedBroadcasters, setSelectedBroadcasters] = useState<number[]>([])
+
   const queryClient = useQueryClient()
 
   const { data: countries } = useQuery({
@@ -48,11 +50,22 @@ function RouteComponent() {
     refetchOnWindowFocus: false,
   })
 
+  const { data: broadcasters } = useQuery({
+    queryKey: ['broadcasters'],
+    queryFn: async () => {
+      const res = await api.get('/broadcasters')
+      return res.data
+    },
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+  })
+
   const { data, isLoading } = useQuery({
     queryKey: [
       'matches',
       selectedDate?.toISOString().split('T')[0] ?? 'all',
       selectedCompetitions,
+      selectedBroadcasters,
     ],
     queryFn: async () => {
       const params: Record<string, string | string[] | number | number[]> = {}
@@ -67,6 +80,10 @@ function RouteComponent() {
         params.competition_ids = selectedCompetitions
       }
 
+      if (selectedBroadcasters.length > 0) {
+        params.broadcaster_ids = selectedBroadcasters
+      }
+
       const res = await api.get('/matches', {
         params,
         paramsSerializer: serializeParams,
@@ -79,11 +96,32 @@ function RouteComponent() {
 
   const prefetchMatches = (date: Date) => {
     queryClient.prefetchQuery({
-      queryKey: ['matches', date.toISOString().split('T')[0]],
+      queryKey: [
+        'matches',
+        date.toISOString().split('T')[0],
+        selectedCompetitions,
+        selectedBroadcasters,
+      ],
       queryFn: async () => {
-        const formatted = date.toISOString().split('T')[0]
+        const params: Record<string, string | string[] | number | number[]> = {}
+
+        if (selectedDate) {
+          const formatted = date.toISOString().split('T')[0]
+          params.start_date = formatted
+          params.end_date = formatted
+        }
+
+        if (selectedCompetitions.length > 0) {
+          params.competition_ids = selectedCompetitions
+        }
+
+        if (selectedBroadcasters.length > 0) {
+          params.broadcaster_ids = selectedBroadcasters
+        }
+
         const res = await api.get('/matches', {
-          params: { start_date: formatted, end_date: formatted },
+          params,
+          paramsSerializer: serializeParams,
         })
         return res.data
       },
@@ -140,6 +178,8 @@ function RouteComponent() {
           onCompetitionChange={setSelectedCompetitions}
           countries={countries}
           onCountryChange={setSelectedCountries}
+          broadcasters={broadcasters}
+          onBroadcastersChange={setSelectedBroadcasters}
         />
 
         {isLoading ? (

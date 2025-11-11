@@ -2,13 +2,15 @@ import { useState } from 'react'
 import { DropdownMultiSelect } from '../../primitives/Dropdown'
 
 interface FiltersProps {
-  exclude?: ('countries' | 'competitions' | 'channels')[]
+  exclude?: ('countries' | 'competitions' | 'channels' | 'broadcasters')[]
   competitions?: { id: number; name: string }[]
   channels?: { id: number; name: string }[]
   countries?: { id: number; name: string }[]
+  broadcasters?: { id: number; name: string }[]
   onCountryChange?: (value: number[]) => void
   onCompetitionChange?: (value: number[]) => void
   onChannelChange?: (value: number[]) => void
+  onBroadcastersChange?: (value: number[]) => void
 }
 
 export function Filters({
@@ -16,13 +18,16 @@ export function Filters({
   competitions = [],
   channels = [],
   countries = [],
+  broadcasters = [],
   onCountryChange,
   onCompetitionChange,
   onChannelChange,
+  onBroadcastersChange,
 }: FiltersProps) {
   const [selectedCountry, setSelectedCountry] = useState<number[]>([])
   const [selectedCompetitions, setSelectedCompetitions] = useState<number[]>([])
   const [selectedChannels, setSelectedChannels] = useState<number[]>([])
+  const [selectedBroadcasters, setSelectedBroadcasters] = useState<number[]>([])
 
   const handleCountryChange = (values: string[]) => {
     setSelectedCountry(values.map(s => parseInt(s)))
@@ -37,6 +42,11 @@ export function Filters({
   const handleChannelChange = (values: string[]) => {
     setSelectedChannels(values.map(s => parseInt(s)))
     onChannelChange?.(values.map(s => parseInt(s)))
+  }
+
+  const handleBroadcastersChange = (values: string[]) => {
+    setSelectedBroadcasters(values.map(s => parseInt(s)))
+    onBroadcastersChange?.(values.map(s => parseInt(s)))
   }
 
   return (
@@ -83,6 +93,29 @@ export function Filters({
             value={selectedCompetitions}
             onChange={handleCompetitionChange}
             placeholder="All Competitions"
+            className="w-full"
+          />
+        </div>
+      )}
+
+      {!exclude.includes('broadcasters') && (
+        <div className="flex-1">
+          <label
+            htmlFor="broadcasters"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Broadcasters
+          </label>
+          <DropdownMultiSelect
+            // @ts-expect-error
+            options={broadcasters.map(c => ({
+              key: c.id.toString(),
+              value: c.id,
+              label: c.name,
+            }))}
+            // @ts-expect-error
+            value={selectedBroadcasters}
+            onChange={handleBroadcastersChange}
+            placeholder="All Broadcasters"
             className="w-full"
           />
         </div>
