@@ -4,8 +4,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { startOfToday } from 'date-fns'
 import { List, LayoutGrid } from 'lucide-react'
 import { api } from '../api'
-import { DateSelector, MatchCard, Filters } from '../components'
+import { DateSelector, Filters } from '../components'
 import serializeParams from '../helpers/serializeParams'
+import { MatchesView } from '../components/MatchesView'
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,
@@ -129,26 +130,6 @@ function RouteComponent() {
     })
   }
 
-  function renderMatches() {
-    if (viewMode === 'list') {
-      return (
-        <div className="flex flex-col mt-6 space-y-4">
-          {data.map((match: any) => (
-            <MatchCard key={match.id} match={match} />
-          ))}
-        </div>
-      )
-    } else {
-      return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-          {data.map((match: any) => (
-            <MatchCard key={match.id} match={match} view={viewMode} />
-          ))}
-        </div>
-      )
-    }
-  }
-
   return (
     <div className="bg-gray-50 dark:bg-gray-900">
       <div className="min-h-screen p-4 md:p-8 max-w-4xl mx-auto">
@@ -191,7 +172,7 @@ function RouteComponent() {
             No matches found.
           </p>
         ) : (
-          renderMatches()
+          <MatchesView data={data} viewMode={viewMode} />
         )}
       </div>
     </div>

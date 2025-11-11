@@ -1,4 +1,4 @@
-import { isBefore, isAfter, parseISO, addHours } from 'date-fns'
+import { getMatchStatus, type MatchStatus } from '../../helpers/matchStatus'
 
 interface MatchCardProps {
   channels: {
@@ -11,25 +11,12 @@ interface MatchCardProps {
   }[]
   time: string
   date: string
-  home_team: {
-    id: number
-    name: string
-    logo_url: string
-  }
-  away_team: {
-    id: number
-    name: string
-    logo_url: string
-  }
-  competition: {
-    id: number
-    name: string
-  }
-  country?: {
-    id: number
-    name: string
-    iso_code: string
-  }
+  home_team: { id: number; name: string; logo_url: string }
+  away_team: { id: number; name: string; logo_url: string }
+  competition: { id: number; name: string }
+  country?: { id: number; name: string; iso_code: string }
+  status?: MatchStatus
+  view?: 'list' | 'grid'
 }
 
 export function MatchCard({
@@ -40,15 +27,7 @@ export function MatchCard({
   view?: 'list' | 'grid'
 }) {
   const { channels, time, date, competition, home_team, away_team } = match
-
-  const matchDateTime = parseISO(`${date}T${time}`)
-  // Assume a match lasts 2hrs until detailed data is available
-  const matchEndTime = addHours(matchDateTime, 2)
-  const now = new Date()
-
-  const isMatchInFuture = isAfter(matchDateTime, now)
-  const isMatchInPast = isBefore(matchEndTime, now)
-  const isMatchOngoing = !isMatchInFuture && !isMatchInPast
+  const status = match.status ?? getMatchStatus(date, time)
 
   const matchStatusBorderColor = {
     finished: 'border-red-500',
@@ -56,20 +35,13 @@ export function MatchCard({
     upcoming: 'border-blue-500',
   }
 
-  function getMatchStatus() {
-    if (isMatchInPast) return 'finished'
-    if (isMatchOngoing) return 'ongoing'
-    if (isMatchInFuture) return 'upcoming'
-    return 'upcoming'
-  }
-
   return (
     <div
       className={`bg-white dark:bg-gray-800 shadow-md p-4 rounded-lg flex flex-col ${
         view === 'list' ? 'sm:flex-row sm:justify-between sm:items-center' : ''
-      } ${matchStatusBorderColor[getMatchStatus()]} ${isMatchInPast && 'opacity-40'} border-l-4`}>
+      } ${matchStatusBorderColor[status]} ${status === 'finished' && 'opacity-40'} border-l-4`}>
       <div className={`flex-1 ${view === 'grid' ? 'mb-3' : 'mb-0'}`}>
-        {isMatchOngoing && (
+        {status === 'ongoing' && (
           <div className="flex items-center space-x-2 mb-2">
             <span className="text-white text-xs font-bold px-3 py-1 rounded bg-red-500 animate-pulse-slow tracking-wide">
               &#9675; LIVE
@@ -86,9 +58,8 @@ export function MatchCard({
         </p>
         <div className="flex flex-wrap mt-2 gap-2">
           {channels.map(channel => (
-            <a href={`/broadcaster/${channel.broadcaster_id}`}>
+            <a key={channel.id} href={`/broadcaster/${channel.broadcaster_id}`}>
               <span
-                key={channel.id}
                 className="px-2 py-0.5 rounded text-xs font-semibold"
                 style={{
                   backgroundColor: channel.primary_color,
@@ -101,10 +72,9 @@ export function MatchCard({
           ))}
         </div>
       </div>
-
-      <div className="flex flex-col items-start sm:items-end text-gray-700 dark:text-gray-300 text-sm sm:text-base">
-        <span>{time}</span>
-        <span>{date}</span>
+      <div className="flex flex-col items-start sm:items-end text-gray-800 dark:text-gray-100 text-sm sm:text-base font-medium">
+        <span className="text-lg font-semibold tracking-wide">{time}</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">{date}</span>
       </div>
     </div>
   )
