@@ -9,7 +9,7 @@ export const Route = createFileRoute('/broadcaster/$broadcaster')({
     const isBroadcasterId = isNumeric(broadcaster)
     if (isBroadcasterId) {
       const res = await api.get(
-        `/channels?broadcaster_id=${parseInt(broadcaster)}`,
+        `/broadcasters/channels?broadcaster_id=${parseInt(broadcaster)}`,
       )
       if (res.status === 200) return res.data
     } else {
