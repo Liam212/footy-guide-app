@@ -48,7 +48,7 @@ function RouteComponent() {
   })
 
   const { data: competitions } = useQuery({
-    queryKey: ['competitions', selectedCountries, selectedCountries],
+    queryKey: ['competitions', selectedCountries],
     queryFn: async () => {
       const params: Record<string, string | string[] | number | number[]> = {}
 
