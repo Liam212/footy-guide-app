@@ -121,7 +121,7 @@ export function DropdownMultiSelect<T extends string | number>({
           <li
             key={opt.key}
             onClick={() => toggleValue(opt.value)}
-            className={`text-white px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition ${
+            className={`px-3 py-2 flex justify-between items-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition dark:text-white ${
               isSelected ? 'bg-blue-100 dark:bg-blue-600/30 font-semibold' : ''
             }`}>
             {opt.label}

@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { startOfToday } from 'date-fns'
-import { List, LayoutGrid } from 'lucide-react'
+import { List, LayoutGrid, Sun, Moon } from 'lucide-react'
 import { api } from '../api'
 import { DateSelector, Filters } from '../components'
 import serializeParams from '../helpers/serializeParams'
@@ -19,7 +19,23 @@ function RouteComponent() {
   const [selectedCountries, setSelectedCountries] = useState<number[]>([])
   const [selectedBroadcasters, setSelectedBroadcasters] = useState<number[]>([])
 
+  const getInitialDarkMode = () => {
+    const stored = localStorage.getItem('darkMode')
+    if (stored !== null) return stored === 'true'
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+  }
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(getInitialDarkMode)
+
   const queryClient = useQueryClient()
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+    localStorage.setItem('darkMode', isDarkMode.toString())
+  }, [isDarkMode])
 
   const { data: countries } = useQuery({
     queryKey: ['countries'],
@@ -133,6 +149,13 @@ function RouteComponent() {
   return (
     <div className="bg-gray-50 dark:bg-gray-900">
       <div className="min-h-screen p-4 md:p-8 max-w-4xl mx-auto">
+        <div className="absolute top-4 right-4 z-50">
+          <button
+            onClick={() => setIsDarkMode(prev => !prev)}
+            className="text-gray-800 dark:text-gray-200 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition focus:outline-none">
+            {isDarkMode ? <Sun /> : <Moon />}
+          </button>
+        </div>
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           Matches
         </h1>

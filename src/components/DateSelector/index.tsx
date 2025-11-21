@@ -38,12 +38,12 @@ export function DateSelector({
   const days = Array.from({ length: 7 }).map((_, i) => addDays(startDate, i))
 
   return (
-    <div>
-      <p className="font-semibold text-white text-center">
+    <div className="flex flex-col items-center w-full bg-gray-100 dark:bg-gray-800 p-3 rounded-lg mt-4">
+      <p className="font-semibold dark:text-white text-center">
         {format(selectedDate, 'MMMM yyyy')}
       </p>
 
-      <div className="flex items-center w-full bg-gray-100 dark:bg-gray-800 p-3 rounded-lg mt-4">
+      <div className="flex items-center w-full mt-4 justify-between sm:justify-center">
         <button
           onClick={handlePrev}
           aria-label="Previous week"
@@ -51,31 +51,34 @@ export function DateSelector({
           <ArrowLeft />
         </button>
 
-        <div className="flex flex-1 mx-2 space-x-2 justify-center">
-          {days.map(day => {
-            const isSelected =
-              day.toDateString() === selectedDate.toDateString()
-            return (
-              <button
-                key={day.getTime()}
-                onClick={() => handleSelect(day)}
-                onMouseEnter={() => onMouseEnterDate && onMouseEnterDate(day)}
-                className={`flex flex-col items-center p-2 min-w-[3rem] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-blue-500
+        <div className="flex-1 mx-2 overflow-x-auto no-scrollbar px-3 sm:px-0">
+          <div className="flex flex-nowrap space-x-2 justify-start sm:justify-center">
+            {days.map(day => {
+              const isSelected =
+                day.toDateString() === selectedDate.toDateString()
+
+              return (
+                <button
+                  key={day.getTime()}
+                  onClick={() => handleSelect(day)}
+                  onMouseEnter={() => onMouseEnterDate?.(day)}
+                  className={`flex flex-col items-center p-2 min-w-[3rem] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-blue-500
                 ${
                   isSelected
                     ? 'bg-blue-500 text-white'
                     : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }
               `}>
-                <span className="text-sm font-medium">
-                  {format(day, 'EEE')}
-                </span>
-                <span className="text-lg font-semibold">
-                  {format(day, 'd')}
-                </span>
-              </button>
-            )
-          })}
+                  <span className="text-sm font-medium">
+                    {format(day, 'EEE')}
+                  </span>
+                  <span className="text-lg font-semibold">
+                    {format(day, 'd')}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         <button
