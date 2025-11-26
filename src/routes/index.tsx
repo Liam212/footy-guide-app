@@ -81,6 +81,7 @@ function RouteComponent() {
     queryKey: [
       'matches',
       selectedDate?.toISOString().split('T')[0] ?? 'all',
+      selectedCountries,
       selectedCompetitions,
       selectedBroadcasters,
     ],
@@ -91,6 +92,10 @@ function RouteComponent() {
         const formatted = selectedDate.toISOString().split('T')[0]
         params.start_date = formatted
         params.end_date = formatted
+      }
+
+      if (selectedCountries.length > 0) {
+        params.country_ids = selectedCountries
       }
 
       if (selectedCompetitions.length > 0) {
