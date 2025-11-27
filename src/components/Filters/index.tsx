@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { DropdownMultiSelect } from '../../primitives/Dropdown'
 
 interface FiltersProps {
@@ -29,24 +29,73 @@ export function Filters({
   const [selectedChannels, setSelectedChannels] = useState<number[]>([])
   const [selectedBroadcasters, setSelectedBroadcasters] = useState<number[]>([])
 
+  useEffect(() => {
+    const storedCountries = localStorage.getItem('selectedCountries')
+    const storedCompetitions = localStorage.getItem('selectedCompetitions')
+    const storedChannels = localStorage.getItem('selectedChannels')
+    const storedBroadcasters = localStorage.getItem('selectedBroadcasters')
+
+    if (storedCountries) {
+      const parsedCountries = JSON.parse(storedCountries) as number[]
+      setSelectedCountry(parsedCountries)
+      onCountryChange?.(parsedCountries)
+    }
+    if (storedCompetitions) {
+      const parsedCompetitions = JSON.parse(storedCompetitions) as number[]
+      setSelectedCompetitions(parsedCompetitions)
+      onCompetitionChange?.(parsedCompetitions)
+    }
+    if (storedChannels) {
+      const parsedChannels = JSON.parse(storedChannels) as number[]
+      setSelectedChannels(parsedChannels)
+      onChannelChange?.(parsedChannels)
+    }
+    if (storedBroadcasters) {
+      const parsedBroadcasters = JSON.parse(storedBroadcasters) as number[]
+      setSelectedBroadcasters(parsedBroadcasters)
+      onBroadcastersChange?.(parsedBroadcasters)
+    }
+  }, [
+    onCountryChange,
+    onCompetitionChange,
+    onChannelChange,
+    onBroadcastersChange,
+  ])
+
   const handleCountryChange = (values: string[]) => {
     setSelectedCountry(values.map(s => parseInt(s)))
     onCountryChange?.(values.map(s => parseInt(s)))
+    localStorage.setItem(
+      'selectedCountries',
+      JSON.stringify(values.map(s => parseInt(s))),
+    )
   }
 
   const handleCompetitionChange = (values: string[]) => {
     setSelectedCompetitions(values.map(s => parseInt(s)))
     onCompetitionChange?.(values.map(s => parseInt(s)))
+    localStorage.setItem(
+      'selectedCompetitions',
+      JSON.stringify(values.map(s => parseInt(s))),
+    )
   }
 
   const handleChannelChange = (values: string[]) => {
     setSelectedChannels(values.map(s => parseInt(s)))
     onChannelChange?.(values.map(s => parseInt(s)))
+    localStorage.setItem(
+      'selectedChannels',
+      JSON.stringify(values.map(s => parseInt(s))),
+    )
   }
 
   const handleBroadcastersChange = (values: string[]) => {
     setSelectedBroadcasters(values.map(s => parseInt(s)))
     onBroadcastersChange?.(values.map(s => parseInt(s)))
+    localStorage.setItem(
+      'selectedBroadcasters',
+      JSON.stringify(values.map(s => parseInt(s))),
+    )
   }
 
   return (
