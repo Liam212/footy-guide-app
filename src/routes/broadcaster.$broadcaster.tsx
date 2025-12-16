@@ -8,10 +8,18 @@ export const Route = createFileRoute('/broadcaster/$broadcaster')({
     const { broadcaster } = params as { broadcaster: string }
     const isBroadcasterId = isNumeric(broadcaster)
     if (isBroadcasterId) {
-      const res = await api.get(
+      const channels = await api.get(
         `/broadcasters/channels?broadcaster_id=${parseInt(broadcaster)}`,
       )
-      if (res.status === 200) return res.data
+      const broadcasterReq = await api.get(
+        `/broadcasters?broadcaster_id=${parseInt(broadcaster)}`,
+      )
+
+      if (channels.status === 200 && broadcasterReq.status === 200)
+        return {
+          channels: channels.data,
+          broadcaster: broadcasterReq.data[0],
+        }
     } else {
       const res = await api.get(`/broadcasters?name=${broadcaster}`)
       if (res.status === 200) return res.data
