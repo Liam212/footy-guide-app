@@ -4,20 +4,22 @@ WORKDIR /app
 
 RUN npm install -g pnpm@9
 
-# deps
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
-# build
 COPY . .
 RUN pnpm build
 
 
 # ---- runtime stage ----
-FROM nginx:1.27-alpine
+FROM node:22.12.0-alpine
+WORKDIR /app
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/dist /usr/share/nginx/html
+# lightweight static file server
+RUN npm install -g serve
 
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+COPY --from=build /app/dist ./dist
+
+EXPOSE 3000
+
+CMD ["serve", "-s", "dist", "-l", "3000"]
