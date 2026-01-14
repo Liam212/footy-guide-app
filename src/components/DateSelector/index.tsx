@@ -20,19 +20,24 @@ export function DateSelector({
   initialDate,
   onMouseEnterDate,
 }: DateSelectorProps) {
-  const [startDate, setStartDate] = useState(startOfToday())
-  const [selectedDate, setSelectedDate] = useState(
-    initialDate === 'start'
-      ? startOfWeek(new Date())
-      : initialDate === 'today'
-        ? startOfToday()
-        : initialDate || startOfToday(),
-  )
+  const weekStart = (d: Date) => startOfWeek(d, { weekStartsOn: 1 })
 
+  const [startDate, setStartDate] = useState(() => weekStart(new Date()))
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const base =
+      initialDate === 'start'
+        ? weekStart(new Date())
+        : initialDate === 'today'
+          ? startOfToday()
+          : initialDate || startOfToday()
+    const d = startOfDay(base)
+    return d
+  })
   const dateToday = useMemo(() => startOfDay(new Date()), [])
 
-  const handleSelect = (date: Date) => {
+  const handleSelect = (date: Date, bringDateToView: boolean = false) => {
     setSelectedDate(date)
+    if (bringDateToView) setStartDate(weekStart(date))
     onSelect(date)
   }
 
@@ -44,7 +49,7 @@ export function DateSelector({
     setStartDate(prev => addDays(prev, 7))
   }
 
-  const days = Array.from({ length: 7 }).map((_, i) => addDays(startDate, i))
+  const days = Array.from({ length: 7 }, (_, i) => addDays(startDate, i))
 
   return (
     <div className="flex flex-col items-center w-full bg-gray-100 dark:bg-gray-800 p-3 rounded-lg mt-4">
@@ -101,7 +106,7 @@ export function DateSelector({
 
       <button
         type="button"
-        onClick={() => handleSelect(dateToday)}
+        onClick={() => handleSelect(dateToday, true)}
         className="mt-3 inline-flex items-center gap-1.5 rounded-md px-2 py-1
              text-sm font-medium text-gray-600 dark:text-gray-300
              hover:bg-gray-200 dark:hover:bg-gray-700
