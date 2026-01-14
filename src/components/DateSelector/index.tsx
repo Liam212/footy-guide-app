@@ -1,6 +1,13 @@
-import { useState } from 'react'
-import { format, addDays, startOfToday, startOfWeek } from 'date-fns'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import {
+  format,
+  addDays,
+  startOfToday,
+  startOfWeek,
+  isSameDay,
+  startOfDay,
+} from 'date-fns'
+import { ArrowLeft, ArrowRight, Calendar } from 'lucide-react'
 
 interface DateSelectorProps {
   onSelect: (date: Date) => void
@@ -21,6 +28,8 @@ export function DateSelector({
         ? startOfToday()
         : initialDate || startOfToday(),
   )
+
+  const dateToday = useMemo(() => startOfDay(new Date()), [])
 
   const handleSelect = (date: Date) => {
     setSelectedDate(date)
@@ -54,8 +63,8 @@ export function DateSelector({
         <div className="flex-1 mx-2 overflow-x-auto no-scrollbar px-3 sm:px-0">
           <div className="flex flex-nowrap space-x-2 justify-start sm:justify-center">
             {days.map(day => {
-              const isSelected =
-                day.toDateString() === selectedDate.toDateString()
+              const isSelected = isSameDay(day, selectedDate)
+              const isToday = isSameDay(day, dateToday)
 
               return (
                 <button
@@ -63,12 +72,13 @@ export function DateSelector({
                   onClick={() => handleSelect(day)}
                   onMouseEnter={() => onMouseEnterDate?.(day)}
                   className={`flex flex-col items-center p-2 min-w-[3rem] rounded-lg transition focus:outline-none focus:ring-2 focus:ring-blue-500
-                ${
-                  isSelected
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }
-              `}>
+                  ${
+                    isSelected
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }
+                  ${isToday && !isSelected ? 'ring-2 ring-blue-500 ring-inset' : ''}
+                `}>
                   <span className="text-sm font-medium">
                     {format(day, 'EEE')}
                   </span>
@@ -88,6 +98,17 @@ export function DateSelector({
           <ArrowRight />
         </button>
       </div>
+
+      <button
+        type="button"
+        onClick={() => handleSelect(dateToday)}
+        className="mt-3 inline-flex items-center gap-1.5 rounded-md px-2 py-1
+             text-sm font-medium text-gray-600 dark:text-gray-300
+             hover:bg-gray-200 dark:hover:bg-gray-700
+             focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <Calendar size={14} />
+        Today
+      </button>
     </div>
   )
 }
