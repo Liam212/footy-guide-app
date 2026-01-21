@@ -10,11 +10,27 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CompCompetitionRouteImport } from './routes/comp.$competition'
+import { Route as CCountryRouteImport } from './routes/c.$country'
 import { Route as BroadcasterBroadcasterRouteImport } from './routes/broadcaster.$broadcaster'
+import { Route as BBroadcasterRouteImport } from './routes/b.$broadcaster'
+import { Route as CCountryCompCompetitionRouteImport } from './routes/c.$country/comp.$competition'
+import { Route as CCountryBBroadcasterRouteImport } from './routes/c.$country/b.$broadcaster'
+import { Route as CCountryCompCompetitionBBroadcasterRouteImport } from './routes/c.$country/comp.$competition/b.$broadcaster'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompCompetitionRoute = CompCompetitionRouteImport.update({
+  id: '/comp/$competition',
+  path: '/comp/$competition',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CCountryRoute = CCountryRouteImport.update({
+  id: '/c/$country',
+  path: '/c/$country',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BroadcasterBroadcasterRoute = BroadcasterBroadcasterRouteImport.update({
@@ -22,31 +38,98 @@ const BroadcasterBroadcasterRoute = BroadcasterBroadcasterRouteImport.update({
   path: '/broadcaster/$broadcaster',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BBroadcasterRoute = BBroadcasterRouteImport.update({
+  id: '/b/$broadcaster',
+  path: '/b/$broadcaster',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CCountryCompCompetitionRoute = CCountryCompCompetitionRouteImport.update({
+  id: '/comp/$competition',
+  path: '/comp/$competition',
+  getParentRoute: () => CCountryRoute,
+} as any)
+const CCountryBBroadcasterRoute = CCountryBBroadcasterRouteImport.update({
+  id: '/b/$broadcaster',
+  path: '/b/$broadcaster',
+  getParentRoute: () => CCountryRoute,
+} as any)
+const CCountryCompCompetitionBBroadcasterRoute =
+  CCountryCompCompetitionBBroadcasterRouteImport.update({
+    id: '/b/$broadcaster',
+    path: '/b/$broadcaster',
+    getParentRoute: () => CCountryCompCompetitionRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/b/$broadcaster': typeof BBroadcasterRoute
   '/broadcaster/$broadcaster': typeof BroadcasterBroadcasterRoute
+  '/c/$country': typeof CCountryRouteWithChildren
+  '/comp/$competition': typeof CompCompetitionRoute
+  '/c/$country/b/$broadcaster': typeof CCountryBBroadcasterRoute
+  '/c/$country/comp/$competition': typeof CCountryCompCompetitionRouteWithChildren
+  '/c/$country/comp/$competition/b/$broadcaster': typeof CCountryCompCompetitionBBroadcasterRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/b/$broadcaster': typeof BBroadcasterRoute
   '/broadcaster/$broadcaster': typeof BroadcasterBroadcasterRoute
+  '/c/$country': typeof CCountryRouteWithChildren
+  '/comp/$competition': typeof CompCompetitionRoute
+  '/c/$country/b/$broadcaster': typeof CCountryBBroadcasterRoute
+  '/c/$country/comp/$competition': typeof CCountryCompCompetitionRouteWithChildren
+  '/c/$country/comp/$competition/b/$broadcaster': typeof CCountryCompCompetitionBBroadcasterRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/b/$broadcaster': typeof BBroadcasterRoute
   '/broadcaster/$broadcaster': typeof BroadcasterBroadcasterRoute
+  '/c/$country': typeof CCountryRouteWithChildren
+  '/comp/$competition': typeof CompCompetitionRoute
+  '/c/$country/b/$broadcaster': typeof CCountryBBroadcasterRoute
+  '/c/$country/comp/$competition': typeof CCountryCompCompetitionRouteWithChildren
+  '/c/$country/comp/$competition/b/$broadcaster': typeof CCountryCompCompetitionBBroadcasterRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/broadcaster/$broadcaster'
+  fullPaths:
+    | '/'
+    | '/b/$broadcaster'
+    | '/broadcaster/$broadcaster'
+    | '/c/$country'
+    | '/comp/$competition'
+    | '/c/$country/b/$broadcaster'
+    | '/c/$country/comp/$competition'
+    | '/c/$country/comp/$competition/b/$broadcaster'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/broadcaster/$broadcaster'
-  id: '__root__' | '/' | '/broadcaster/$broadcaster'
+  to:
+    | '/'
+    | '/b/$broadcaster'
+    | '/broadcaster/$broadcaster'
+    | '/c/$country'
+    | '/comp/$competition'
+    | '/c/$country/b/$broadcaster'
+    | '/c/$country/comp/$competition'
+    | '/c/$country/comp/$competition/b/$broadcaster'
+  id:
+    | '__root__'
+    | '/'
+    | '/b/$broadcaster'
+    | '/broadcaster/$broadcaster'
+    | '/c/$country'
+    | '/comp/$competition'
+    | '/c/$country/b/$broadcaster'
+    | '/c/$country/comp/$competition'
+    | '/c/$country/comp/$competition/b/$broadcaster'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BBroadcasterRoute: typeof BBroadcasterRoute
   BroadcasterBroadcasterRoute: typeof BroadcasterBroadcasterRoute
+  CCountryRoute: typeof CCountryRouteWithChildren
+  CompCompetitionRoute: typeof CompCompetitionRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,6 +141,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/comp/$competition': {
+      id: '/comp/$competition'
+      path: '/comp/$competition'
+      fullPath: '/comp/$competition'
+      preLoaderRoute: typeof CompCompetitionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/c/$country': {
+      id: '/c/$country'
+      path: '/c/$country'
+      fullPath: '/c/$country'
+      preLoaderRoute: typeof CCountryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/broadcaster/$broadcaster': {
       id: '/broadcaster/$broadcaster'
       path: '/broadcaster/$broadcaster'
@@ -65,12 +162,72 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BroadcasterBroadcasterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/b/$broadcaster': {
+      id: '/b/$broadcaster'
+      path: '/b/$broadcaster'
+      fullPath: '/b/$broadcaster'
+      preLoaderRoute: typeof BBroadcasterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/c/$country/comp/$competition': {
+      id: '/c/$country/comp/$competition'
+      path: '/comp/$competition'
+      fullPath: '/c/$country/comp/$competition'
+      preLoaderRoute: typeof CCountryCompCompetitionRouteImport
+      parentRoute: typeof CCountryRoute
+    }
+    '/c/$country/b/$broadcaster': {
+      id: '/c/$country/b/$broadcaster'
+      path: '/b/$broadcaster'
+      fullPath: '/c/$country/b/$broadcaster'
+      preLoaderRoute: typeof CCountryBBroadcasterRouteImport
+      parentRoute: typeof CCountryRoute
+    }
+    '/c/$country/comp/$competition/b/$broadcaster': {
+      id: '/c/$country/comp/$competition/b/$broadcaster'
+      path: '/b/$broadcaster'
+      fullPath: '/c/$country/comp/$competition/b/$broadcaster'
+      preLoaderRoute: typeof CCountryCompCompetitionBBroadcasterRouteImport
+      parentRoute: typeof CCountryCompCompetitionRoute
+    }
   }
 }
 
+interface CCountryCompCompetitionRouteChildren {
+  CCountryCompCompetitionBBroadcasterRoute: typeof CCountryCompCompetitionBBroadcasterRoute
+}
+
+const CCountryCompCompetitionRouteChildren: CCountryCompCompetitionRouteChildren =
+  {
+    CCountryCompCompetitionBBroadcasterRoute:
+      CCountryCompCompetitionBBroadcasterRoute,
+  }
+
+const CCountryCompCompetitionRouteWithChildren =
+  CCountryCompCompetitionRoute._addFileChildren(
+    CCountryCompCompetitionRouteChildren,
+  )
+
+interface CCountryRouteChildren {
+  CCountryBBroadcasterRoute: typeof CCountryBBroadcasterRoute
+  CCountryCompCompetitionRoute: typeof CCountryCompCompetitionRouteWithChildren
+}
+
+const CCountryRouteChildren: CCountryRouteChildren = {
+  CCountryBBroadcasterRoute: CCountryBBroadcasterRoute,
+  CCountryCompCompetitionRoute: CCountryCompCompetitionRouteWithChildren,
+}
+
+const CCountryRouteWithChildren = CCountryRoute._addFileChildren(
+  CCountryRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BBroadcasterRoute: BBroadcasterRoute,
   BroadcasterBroadcasterRoute: BroadcasterBroadcasterRoute,
+  CCountryRoute: CCountryRouteWithChildren,
+  CompCompetitionRoute: CompCompetitionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

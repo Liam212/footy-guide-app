@@ -5,8 +5,10 @@ import { startOfToday, parseISO, isValid, startOfDay, format } from 'date-fns'
 import { List, LayoutGrid, Sun, Moon } from 'lucide-react'
 import { api } from '../api'
 import { DateSelector, Filters } from '../components'
+import { QuickLinks } from '../components/QuickLinks'
 import serializeParams from '../helpers/serializeParams'
 import { MatchesView } from '../components/MatchesView'
+import { useDarkMode } from '../hooks/useDarkMode'
 
 export const Route = createFileRoute('/')({
   validateSearch: search => ({
@@ -80,23 +82,9 @@ function RouteComponent() {
     [search.broadcasters],
   )
 
-  const getInitialDarkMode = () => {
-    const stored = localStorage.getItem('darkMode')
-    if (stored !== null) return stored === 'true'
-    return window.matchMedia('(prefers-color-scheme: dark)').matches
-  }
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(getInitialDarkMode)
+  const { isDarkMode, toggleDarkMode } = useDarkMode()
 
   const queryClient = useQueryClient()
-
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-    localStorage.setItem('darkMode', isDarkMode.toString())
-  }, [isDarkMode])
 
   useEffect(() => {
     if (!search.date) return
@@ -114,6 +102,33 @@ function RouteComponent() {
 
   useEffect(() => {
     if (search.date) return
+    if (search.countries || search.competitions || search.broadcasters) return
+    const storedCountries = readStoredIds(STORAGE_KEYS.countries)
+    const storedCompetitions = readStoredIds(STORAGE_KEYS.competitions)
+    const storedBroadcasters = readStoredIds(STORAGE_KEYS.broadcasters)
+    navigate({
+      search: prev => ({
+        ...prev,
+        date: format(startOfToday(), 'yyyy-MM-dd'),
+        countries: serializeIds(storedCountries),
+        competitions: serializeIds(storedCompetitions),
+        broadcasters: serializeIds(storedBroadcasters),
+      }),
+      replace: true,
+    })
+  }, [
+    search.date,
+    search.countries,
+    search.competitions,
+    search.broadcasters,
+    navigate,
+  ])
+
+  useEffect(() => {
+    if (search.date) return
+    if (!search.countries && !search.competitions && !search.broadcasters) {
+      return
+    }
     navigate({
       search: prev => ({
         ...prev,
@@ -121,30 +136,7 @@ function RouteComponent() {
       }),
       replace: true,
     })
-  }, [search.date, navigate])
-
-  useEffect(() => {
-    if (search.countries || search.competitions || search.broadcasters) return
-    const storedCountries = readStoredIds(STORAGE_KEYS.countries)
-    const storedCompetitions = readStoredIds(STORAGE_KEYS.competitions)
-    const storedBroadcasters = readStoredIds(STORAGE_KEYS.broadcasters)
-    if (
-      storedCountries.length === 0 &&
-      storedCompetitions.length === 0 &&
-      storedBroadcasters.length === 0
-    ) {
-      return
-    }
-    navigate({
-      search: prev => ({
-        ...prev,
-        countries: serializeIds(storedCountries),
-        competitions: serializeIds(storedCompetitions),
-        broadcasters: serializeIds(storedBroadcasters),
-      }),
-      replace: true,
-    })
-  }, [search.countries, search.competitions, search.broadcasters, navigate])
+  }, [search.date, search.countries, search.competitions, search.broadcasters, navigate])
 
   const { data: countries } = useQuery({
     queryKey: ['countries'],
@@ -189,7 +181,7 @@ function RouteComponent() {
   const { data, isLoading } = useQuery({
     queryKey: [
       'matches',
-      selectedDate?.toISOString().split('T')[0] ?? 'all',
+      format(selectedDate, 'yyyy-MM-dd'),
       selectedCountries,
       selectedCompetitions,
       selectedBroadcasters,
@@ -197,11 +189,9 @@ function RouteComponent() {
     queryFn: async () => {
       const params: Record<string, string | string[] | number | number[]> = {}
 
-      if (selectedDate) {
-        const formatted = selectedDate.toISOString().split('T')[0]
-        params.start_date = formatted
-        params.end_date = formatted
-      }
+      const formatted = format(selectedDate, 'yyyy-MM-dd')
+      params.start_date = formatted
+      params.end_date = formatted
 
       if (selectedCountries.length > 0) {
         params.country_ids = selectedCountries
@@ -229,7 +219,7 @@ function RouteComponent() {
     queryClient.prefetchQuery({
       queryKey: [
         'matches',
-        date.toISOString().split('T')[0],
+        format(date, 'yyyy-MM-dd'),
         selectedCountries,
         selectedCompetitions,
         selectedBroadcasters,
@@ -237,11 +227,9 @@ function RouteComponent() {
       queryFn: async () => {
         const params: Record<string, string | string[] | number | number[]> = {}
 
-        if (selectedDate) {
-          const formatted = date.toISOString().split('T')[0]
-          params.start_date = formatted
-          params.end_date = formatted
-        }
+        const formatted = format(date, 'yyyy-MM-dd')
+        params.start_date = formatted
+        params.end_date = formatted
 
         if (selectedCountries.length > 0) {
           params.country_ids = selectedCountries
@@ -270,7 +258,7 @@ function RouteComponent() {
       <div className="min-h-screen p-4 md:p-8 max-w-4xl mx-auto">
         <div className="absolute top-4 right-4 z-50">
           <button
-            onClick={() => setIsDarkMode(prev => !prev)}
+            onClick={toggleDarkMode}
             className="text-gray-800 dark:text-gray-200 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition focus:outline-none">
             {isDarkMode ? <Sun /> : <Moon />}
           </button>
@@ -278,6 +266,8 @@ function RouteComponent() {
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
           Matches
         </h1>
+
+        <QuickLinks />
 
         <DateSelector
           onSelect={date => {
