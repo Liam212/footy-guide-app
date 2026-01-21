@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { startOfToday } from 'date-fns'
+import { startOfToday, parseISO, isValid, startOfDay, format } from 'date-fns'
 import { List, LayoutGrid, Sun, Moon } from 'lucide-react'
 import { api } from '../api'
 import { DateSelector, Filters } from '../components'
@@ -9,15 +9,49 @@ import serializeParams from '../helpers/serializeParams'
 import { MatchesView } from '../components/MatchesView'
 
 export const Route = createFileRoute('/')({
+  validateSearch: search => ({
+    date: typeof search.date === 'string' ? search.date : undefined,
+    countries: typeof search.countries === 'string' ? search.countries : undefined,
+    competitions:
+      typeof search.competitions === 'string' ? search.competitions : undefined,
+    broadcasters:
+      typeof search.broadcasters === 'string' ? search.broadcasters : undefined,
+  }),
   component: RouteComponent,
 })
 
+const parseIds = (value: string | undefined) => {
+  if (!value) return []
+  return value
+    .split(',')
+    .map(item => parseInt(item, 10))
+    .filter(id => Number.isFinite(id))
+}
+
+const serializeIds = (values: number[]) =>
+  values.length > 0 ? values.join(',') : undefined
+
 function RouteComponent() {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(startOfToday())
+  const search = Route.useSearch()
+  const navigate = Route.useNavigate()
+  const selectedDate = useMemo(() => {
+    if (!search.date) return startOfToday()
+    const parsed = parseISO(search.date)
+    return isValid(parsed) ? startOfDay(parsed) : startOfToday()
+  }, [search.date])
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
-  const [selectedCompetitions, setSelectedCompetitions] = useState<number[]>([])
-  const [selectedCountries, setSelectedCountries] = useState<number[]>([])
-  const [selectedBroadcasters, setSelectedBroadcasters] = useState<number[]>([])
+  const selectedCountries = useMemo(
+    () => parseIds(search.countries),
+    [search.countries],
+  )
+  const selectedCompetitions = useMemo(
+    () => parseIds(search.competitions),
+    [search.competitions],
+  )
+  const selectedBroadcasters = useMemo(
+    () => parseIds(search.broadcasters),
+    [search.broadcasters],
+  )
 
   const getInitialDarkMode = () => {
     const stored = localStorage.getItem('darkMode')
@@ -36,6 +70,31 @@ function RouteComponent() {
     }
     localStorage.setItem('darkMode', isDarkMode.toString())
   }, [isDarkMode])
+
+  useEffect(() => {
+    if (!search.date) return
+    const parsed = parseISO(search.date)
+    if (!isValid(parsed)) {
+      navigate({
+        search: prev => ({
+          ...prev,
+          date: undefined,
+        }),
+        replace: true,
+      })
+    }
+  }, [search.date, navigate])
+
+  useEffect(() => {
+    if (search.date) return
+    navigate({
+      search: prev => ({
+        ...prev,
+        date: format(startOfToday(), 'yyyy-MM-dd'),
+      }),
+      replace: true,
+    })
+  }, [search.date, navigate])
 
   const { data: countries } = useQuery({
     queryKey: ['countries'],
@@ -171,9 +230,17 @@ function RouteComponent() {
         </h1>
 
         <DateSelector
-          onSelect={setSelectedDate}
+          onSelect={date => {
+            navigate({
+              search: prev => ({
+                ...prev,
+                date: format(date, 'yyyy-MM-dd'),
+              }),
+            })
+          }}
           initialDate="today"
           onMouseEnterDate={prefetchMatches}
+          selectedDate={selectedDate}
         />
 
         <div className="flex justify-end">
@@ -189,11 +256,35 @@ function RouteComponent() {
         <Filters
           exclude={['channels']}
           competitions={competitions}
-          onCompetitionChange={setSelectedCompetitions}
+          selectedCompetitions={selectedCompetitions}
+          onCompetitionChange={values =>
+            navigate({
+              search: prev => ({
+                ...prev,
+                competitions: serializeIds(values),
+              }),
+            })
+          }
           countries={countries}
-          onCountryChange={setSelectedCountries}
+          selectedCountries={selectedCountries}
+          onCountryChange={values =>
+            navigate({
+              search: prev => ({
+                ...prev,
+                countries: serializeIds(values),
+              }),
+            })
+          }
           broadcasters={broadcasters}
-          onBroadcastersChange={setSelectedBroadcasters}
+          selectedBroadcasters={selectedBroadcasters}
+          onBroadcastersChange={values =>
+            navigate({
+              search: prev => ({
+                ...prev,
+                broadcasters: serializeIds(values),
+              }),
+            })
+          }
         />
 
         {isLoading ? (

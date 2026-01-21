@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   format,
   addDays,
@@ -13,27 +13,36 @@ interface DateSelectorProps {
   onSelect: (date: Date) => void
   initialDate?: Date | 'start' | 'today'
   onMouseEnterDate?: (date: Date) => void
+  selectedDate?: Date
 }
 
 export function DateSelector({
   onSelect,
   initialDate,
   onMouseEnterDate,
+  selectedDate: selectedDateProp,
 }: DateSelectorProps) {
   const weekStart = (d: Date) => startOfWeek(d, { weekStartsOn: 1 })
 
   const [startDate, setStartDate] = useState(() => weekStart(new Date()))
   const [selectedDate, setSelectedDate] = useState(() => {
-    const base =
-      initialDate === 'start'
+    const base = selectedDateProp
+      ? selectedDateProp
+      : initialDate === 'start'
         ? weekStart(new Date())
         : initialDate === 'today'
           ? startOfToday()
           : initialDate || startOfToday()
-    const d = startOfDay(base)
-    return d
+    return startOfDay(base)
   })
   const dateToday = useMemo(() => startOfDay(new Date()), [])
+
+  useEffect(() => {
+    if (!selectedDateProp) return
+    const normalized = startOfDay(selectedDateProp)
+    setSelectedDate(prev => (isSameDay(prev, normalized) ? prev : normalized))
+    setStartDate(weekStart(normalized))
+  }, [selectedDateProp])
 
   const handleSelect = (date: Date, bringDateToView: boolean = false) => {
     setSelectedDate(date)
