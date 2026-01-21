@@ -11,7 +11,8 @@ import { MatchesView } from '../components/MatchesView'
 export const Route = createFileRoute('/')({
   validateSearch: search => ({
     date: typeof search.date === 'string' ? search.date : undefined,
-    countries: typeof search.countries === 'string' ? search.countries : undefined,
+    countries:
+      typeof search.countries === 'string' ? search.countries : undefined,
     competitions:
       typeof search.competitions === 'string' ? search.competitions : undefined,
     broadcasters:
@@ -19,6 +20,12 @@ export const Route = createFileRoute('/')({
   }),
   component: RouteComponent,
 })
+
+const STORAGE_KEYS = {
+  countries: 'selectedCountries',
+  competitions: 'selectedCompetitions',
+  broadcasters: 'selectedBroadcasters',
+} as const
 
 const parseIds = (value: string | undefined) => {
   if (!value) return []
@@ -30,6 +37,26 @@ const parseIds = (value: string | undefined) => {
 
 const serializeIds = (values: number[]) =>
   values.length > 0 ? values.join(',') : undefined
+
+const readStoredIds = (key: string) => {
+  const raw = sessionStorage.getItem(key)
+  if (!raw) return []
+  try {
+    const parsed = JSON.parse(raw) as number[]
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter(id => Number.isFinite(id))
+  } catch {
+    return []
+  }
+}
+
+const writeStoredIds = (key: string, values: number[]) => {
+  if (values.length === 0) {
+    sessionStorage.removeItem(key)
+    return
+  }
+  sessionStorage.setItem(key, JSON.stringify(values))
+}
 
 function RouteComponent() {
   const search = Route.useSearch()
@@ -95,6 +122,29 @@ function RouteComponent() {
       replace: true,
     })
   }, [search.date, navigate])
+
+  useEffect(() => {
+    if (search.countries || search.competitions || search.broadcasters) return
+    const storedCountries = readStoredIds(STORAGE_KEYS.countries)
+    const storedCompetitions = readStoredIds(STORAGE_KEYS.competitions)
+    const storedBroadcasters = readStoredIds(STORAGE_KEYS.broadcasters)
+    if (
+      storedCountries.length === 0 &&
+      storedCompetitions.length === 0 &&
+      storedBroadcasters.length === 0
+    ) {
+      return
+    }
+    navigate({
+      search: prev => ({
+        ...prev,
+        countries: serializeIds(storedCountries),
+        competitions: serializeIds(storedCompetitions),
+        broadcasters: serializeIds(storedBroadcasters),
+      }),
+      replace: true,
+    })
+  }, [search.countries, search.competitions, search.broadcasters, navigate])
 
   const { data: countries } = useQuery({
     queryKey: ['countries'],
@@ -257,34 +307,37 @@ function RouteComponent() {
           exclude={['channels']}
           competitions={competitions}
           selectedCompetitions={selectedCompetitions}
-          onCompetitionChange={values =>
+          onCompetitionChange={values => {
+            writeStoredIds(STORAGE_KEYS.competitions, values)
             navigate({
               search: prev => ({
                 ...prev,
                 competitions: serializeIds(values),
               }),
             })
-          }
+          }}
           countries={countries}
           selectedCountries={selectedCountries}
-          onCountryChange={values =>
+          onCountryChange={values => {
+            writeStoredIds(STORAGE_KEYS.countries, values)
             navigate({
               search: prev => ({
                 ...prev,
                 countries: serializeIds(values),
               }),
             })
-          }
+          }}
           broadcasters={broadcasters}
           selectedBroadcasters={selectedBroadcasters}
-          onBroadcastersChange={values =>
+          onBroadcastersChange={values => {
+            writeStoredIds(STORAGE_KEYS.broadcasters, values)
             navigate({
               search: prev => ({
                 ...prev,
                 broadcasters: serializeIds(values),
               }),
             })
-          }
+          }}
         />
 
         {isLoading ? (
