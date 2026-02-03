@@ -1,15 +1,18 @@
 import { DropdownMultiSelect } from '../../primitives/Dropdown'
 
 interface FiltersProps {
-  exclude?: ('countries' | 'competitions' | 'channels' | 'broadcasters')[]
+  exclude?: ('sports' | 'countries' | 'competitions' | 'channels' | 'broadcasters')[]
+  sports?: { id: number; name: string }[]
   competitions?: { id: number; name: string }[]
   channels?: { id: number; name: string }[]
   countries?: { id: number; name: string }[]
   broadcasters?: { id: number; name: string }[]
+  selectedSports?: number[]
   selectedCountries?: number[]
   selectedCompetitions?: number[]
   selectedChannels?: number[]
   selectedBroadcasters?: number[]
+  onSportChange?: (value: number[]) => void
   onCountryChange?: (value: number[]) => void
   onCompetitionChange?: (value: number[]) => void
   onChannelChange?: (value: number[]) => void
@@ -18,19 +21,26 @@ interface FiltersProps {
 
 export function Filters({
   exclude = [],
+  sports = [],
   competitions = [],
   channels = [],
   countries = [],
   broadcasters = [],
+  selectedSports = [],
   selectedCountries = [],
   selectedCompetitions = [],
   selectedChannels = [],
   selectedBroadcasters = [],
+  onSportChange,
   onCountryChange,
   onCompetitionChange,
   onChannelChange,
   onBroadcastersChange,
 }: FiltersProps) {
+  const handleSportChange = (values: string[]) => {
+    onSportChange?.(values.map(s => parseInt(s)))
+  }
+
   const handleCountryChange = (values: string[]) => {
     onCountryChange?.(values.map(s => parseInt(s)))
   }
@@ -49,6 +59,29 @@ export function Filters({
 
   return (
     <div className="flex flex-col md:flex-row gap-4 mt-4 bg-gray-100 dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+      {!exclude.includes('sports') && (
+        <div className="flex-1">
+          <label
+            htmlFor="sports"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Sport
+          </label>
+          <DropdownMultiSelect
+            // @ts-expect-error
+            options={sports.map(s => ({
+              key: s.id.toString(),
+              value: s.id,
+              label: s.name,
+            }))}
+            // @ts-expect-error
+            value={selectedSports}
+            onChange={handleSportChange}
+            placeholder="All Sports"
+            className="w-full"
+          />
+        </div>
+      )}
+
       {!exclude.includes('countries') && (
         <div className="flex-1">
           <label

@@ -11,6 +11,7 @@ import { MatchesView } from '../components/MatchesView'
 export const Route = createFileRoute('/')({
   validateSearch: search => ({
     date: typeof search.date === 'string' ? search.date : undefined,
+    sports: typeof search.sports === 'string' ? search.sports : undefined,
     countries:
       typeof search.countries === 'string' ? search.countries : undefined,
     competitions:
@@ -22,6 +23,7 @@ export const Route = createFileRoute('/')({
 })
 
 const STORAGE_KEYS = {
+  sports: 'selectedSports',
   countries: 'selectedCountries',
   competitions: 'selectedCompetitions',
   broadcasters: 'selectedBroadcasters',
@@ -67,6 +69,7 @@ function RouteComponent() {
     return isValid(parsed) ? startOfDay(parsed) : startOfToday()
   }, [search.date])
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
+  const selectedSports = useMemo(() => parseIds(search.sports), [search.sports])
   const selectedCountries = useMemo(
     () => parseIds(search.countries),
     [search.countries],
@@ -124,11 +127,20 @@ function RouteComponent() {
   }, [search.date, navigate])
 
   useEffect(() => {
-    if (search.countries || search.competitions || search.broadcasters) return
+    if (
+      search.sports ||
+      search.countries ||
+      search.competitions ||
+      search.broadcasters
+    ) {
+      return
+    }
+    const storedSports = readStoredIds(STORAGE_KEYS.sports)
     const storedCountries = readStoredIds(STORAGE_KEYS.countries)
     const storedCompetitions = readStoredIds(STORAGE_KEYS.competitions)
     const storedBroadcasters = readStoredIds(STORAGE_KEYS.broadcasters)
     if (
+      storedSports.length === 0 &&
       storedCountries.length === 0 &&
       storedCompetitions.length === 0 &&
       storedBroadcasters.length === 0
@@ -138,13 +150,30 @@ function RouteComponent() {
     navigate({
       search: prev => ({
         ...prev,
+        sports: serializeIds(storedSports),
         countries: serializeIds(storedCountries),
         competitions: serializeIds(storedCompetitions),
         broadcasters: serializeIds(storedBroadcasters),
       }),
       replace: true,
     })
-  }, [search.countries, search.competitions, search.broadcasters, navigate])
+  }, [
+    search.sports,
+    search.countries,
+    search.competitions,
+    search.broadcasters,
+    navigate,
+  ])
+
+  const { data: sports } = useQuery({
+    queryKey: ['sports'],
+    queryFn: async () => {
+      const res = await api.get('/sports')
+      return res.data
+    },
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+  })
 
   const { data: countries } = useQuery({
     queryKey: ['countries'],
@@ -157,9 +186,13 @@ function RouteComponent() {
   })
 
   const { data: competitions } = useQuery({
-    queryKey: ['competitions', selectedCountries],
+    queryKey: ['competitions', selectedSports, selectedCountries],
     queryFn: async () => {
       const params: Record<string, string | string[] | number | number[]> = {}
+
+      if (selectedSports.length > 0) {
+        params.sport_ids = selectedSports
+      }
 
       if (selectedCountries.length > 0) {
         params.country_ids = selectedCountries
@@ -190,6 +223,7 @@ function RouteComponent() {
     queryKey: [
       'matches',
       selectedDate?.toISOString().split('T')[0] ?? 'all',
+      selectedSports,
       selectedCountries,
       selectedCompetitions,
       selectedBroadcasters,
@@ -201,6 +235,10 @@ function RouteComponent() {
         const formatted = selectedDate.toISOString().split('T')[0]
         params.start_date = formatted
         params.end_date = formatted
+      }
+
+      if (selectedSports.length > 0) {
+        params.sport_ids = selectedSports
       }
 
       if (selectedCountries.length > 0) {
@@ -230,6 +268,7 @@ function RouteComponent() {
       queryKey: [
         'matches',
         date.toISOString().split('T')[0],
+        selectedSports,
         selectedCountries,
         selectedCompetitions,
         selectedBroadcasters,
@@ -241,6 +280,10 @@ function RouteComponent() {
           const formatted = date.toISOString().split('T')[0]
           params.start_date = formatted
           params.end_date = formatted
+        }
+
+        if (selectedSports.length > 0) {
+          params.sport_ids = selectedSports
         }
 
         if (selectedCountries.length > 0) {
@@ -305,6 +348,17 @@ function RouteComponent() {
 
         <Filters
           exclude={['channels']}
+          sports={sports}
+          selectedSports={selectedSports}
+          onSportChange={values => {
+            writeStoredIds(STORAGE_KEYS.sports, values)
+            navigate({
+              search: prev => ({
+                ...prev,
+                sports: serializeIds(values),
+              }),
+            })
+          }}
           competitions={competitions}
           selectedCompetitions={selectedCompetitions}
           onCompetitionChange={values => {
