@@ -34,6 +34,48 @@ const injectHeadTags = (html, tags) => {
   return html.replace('</head>', `${tags}\n</head>`)
 }
 
+const buildMetaFromMatch = ({ match, origin, matchId, env }) => {
+  if (!match) return ''
+  const home = match?.home_team?.name ?? 'Match'
+  const away = match?.away_team?.name ?? ''
+  const competition = match?.competition?.name ?? 'Footy Guide'
+  const title = away ? `${home} vs ${away}` : home
+  const descriptionParts = [match?.date, match?.time, competition].filter(
+    Boolean,
+  )
+  const description = descriptionParts.join(' • ')
+  const image =
+    match?.home_team?.logo_url ||
+    match?.away_team?.logo_url ||
+    match?.competition?.logo_url
+  const url = `${origin}/matches/${matchId}`
+  const cardType = image ? 'summary_large_image' : 'summary'
+  const siteName =
+    env?.VITE_PUBLIC_SITE_NAME ||
+    process.env.VITE_PUBLIC_SITE_NAME ||
+    'Footy Guide'
+  const twitterSite =
+    env?.VITE_PUBLIC_TWITTER_HANDLE || process.env.VITE_PUBLIC_TWITTER_HANDLE
+
+  return [
+    `<meta property="og:type" content="website">`,
+    `<meta property="og:site_name" content="${escapeHtml(siteName)}">`,
+    `<meta property="og:title" content="${escapeHtml(title)}">`,
+    `<meta property="og:description" content="${escapeHtml(description)}">`,
+    `<meta property="og:url" content="${escapeHtml(url)}">`,
+    image ? `<meta property="og:image" content="${escapeHtml(image)}">` : '',
+    `<meta name="twitter:card" content="${cardType}">`,
+    twitterSite
+      ? `<meta name="twitter:site" content="${escapeHtml(twitterSite)}">`
+      : '',
+    `<meta name="twitter:title" content="${escapeHtml(title)}">`,
+    `<meta name="twitter:description" content="${escapeHtml(description)}">`,
+    image ? `<meta name="twitter:image" content="${escapeHtml(image)}">` : '',
+  ]
+    .filter(Boolean)
+    .join('\n')
+}
+
 async function fetchMatchMeta({ matchId, origin, env }) {
   const cacheKey = `${origin}:${matchId}`
   const cached = metaCache.get(cacheKey)
@@ -152,14 +194,30 @@ async function createServer() {
         render = (await vite.ssrLoadModule('/src/entry-server.tsx')).render
       }
 
+      const { html, state } = await render(url)
+
       const matchId = url.startsWith('/matches/')
         ? url.split('/')[2]?.split('?')[0]
         : null
-      const metaTags = matchId
+      let metaTags = matchId
         ? await fetchMatchMeta({ matchId, origin, env })
         : ''
 
-      const { html, state } = await render(url)
+      if (!metaTags && matchId && state?.queries?.length) {
+        const matchQuery = state.queries.find(
+          query =>
+            Array.isArray(query.queryKey) &&
+            query.queryKey[0] === 'match' &&
+            String(query.queryKey[1]) === String(matchId),
+        )
+        const matchData = matchQuery?.state?.data
+        metaTags = buildMetaFromMatch({
+          match: matchData,
+          origin,
+          matchId,
+          env,
+        })
+      }
 
       const finalHtml = htmlTemplate
         .replace('<!--head-tags-->', metaTags)
