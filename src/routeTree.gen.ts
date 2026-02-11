@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MatchesMatchIdRouteImport } from './routes/matches.$matchId'
 import { Route as BroadcasterBroadcasterRouteImport } from './routes/broadcaster.$broadcaster'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MatchesMatchIdRoute = MatchesMatchIdRouteImport.update({
+  id: '/matches/$matchId',
+  path: '/matches/$matchId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BroadcasterBroadcasterRoute = BroadcasterBroadcasterRouteImport.update({
@@ -26,27 +32,31 @@ const BroadcasterBroadcasterRoute = BroadcasterBroadcasterRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/broadcaster/$broadcaster': typeof BroadcasterBroadcasterRoute
+  '/matches/$matchId': typeof MatchesMatchIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/broadcaster/$broadcaster': typeof BroadcasterBroadcasterRoute
+  '/matches/$matchId': typeof MatchesMatchIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/broadcaster/$broadcaster': typeof BroadcasterBroadcasterRoute
+  '/matches/$matchId': typeof MatchesMatchIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/broadcaster/$broadcaster'
+  fullPaths: '/' | '/broadcaster/$broadcaster' | '/matches/$matchId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/broadcaster/$broadcaster'
-  id: '__root__' | '/' | '/broadcaster/$broadcaster'
+  to: '/' | '/broadcaster/$broadcaster' | '/matches/$matchId'
+  id: '__root__' | '/' | '/broadcaster/$broadcaster' | '/matches/$matchId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BroadcasterBroadcasterRoute: typeof BroadcasterBroadcasterRoute
+  MatchesMatchIdRoute: typeof MatchesMatchIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/matches/$matchId': {
+      id: '/matches/$matchId'
+      path: '/matches/$matchId'
+      fullPath: '/matches/$matchId'
+      preLoaderRoute: typeof MatchesMatchIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/broadcaster/$broadcaster': {
@@ -71,6 +88,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BroadcasterBroadcasterRoute: BroadcasterBroadcasterRoute,
+  MatchesMatchIdRoute: MatchesMatchIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
