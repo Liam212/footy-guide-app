@@ -131,7 +131,7 @@ async function createServer() {
       .render
   }
 
-  app.use('*', async (req, res) => {
+  app.use(/.*/, async (req, res) => {
     try {
       const url = req.originalUrl
       const origin = `${req.protocol}://${req.get('host')}`
