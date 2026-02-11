@@ -26,6 +26,14 @@ const escapeHtml = value =>
 const serializeState = state =>
   JSON.stringify(state).replace(/</g, '\\u003c')
 
+const injectHeadTags = (html, tags) => {
+  if (!tags) return html
+  if (html.includes('<!--head-tags-->')) {
+    return html.replace('<!--head-tags-->', tags)
+  }
+  return html.replace('</head>', `${tags}\n</head>`)
+}
+
 async function fetchMatchMeta({ matchId, origin, env }) {
   const cacheKey = `${origin}:${matchId}`
   const cached = metaCache.get(cacheKey)
@@ -163,7 +171,9 @@ async function createServer() {
           )}</script>`,
         )
 
-      res.status(200).set({ 'Content-Type': 'text/html' }).end(finalHtml)
+      const outputHtml = injectHeadTags(finalHtml, metaTags)
+
+      res.status(200).set({ 'Content-Type': 'text/html' }).end(outputHtml)
     } catch (error) {
       if (!isProd && vite) {
         vite.ssrFixStacktrace(error)
