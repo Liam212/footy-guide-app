@@ -5,21 +5,26 @@ WORKDIR /app
 RUN npm install -g pnpm@9
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
 COPY . .
-RUN pnpm build
+RUN pnpm build:ssr
 
 
 # ---- runtime stage ----
 FROM node:22.12.0-alpine
 WORKDIR /app
 
-# lightweight static file server
-RUN npm install -g serve
+ENV NODE_ENV=production
+
+RUN npm install -g pnpm@9
+
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --prod --no-frozen-lockfile
 
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/server ./server
 
 EXPOSE 3000
 
-CMD ["serve", "-s", "dist", "-l", "3000"]
+CMD ["node", "server/index.js"]
