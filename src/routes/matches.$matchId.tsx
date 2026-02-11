@@ -53,9 +53,9 @@ function RouteComponent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-        <div className="max-w-3xl mx-auto px-6 py-10">
-          <p className="text-gray-500 dark:text-gray-400">Loading match...</p>
+      <div className="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+        <div className="min-h-screen p-4 md:p-8 max-w-4xl mx-auto">
+          <p className="text-gray-700 dark:text-gray-300">Loading match...</p>
         </div>
       </div>
     )
@@ -63,11 +63,9 @@ function RouteComponent() {
 
   if (!match) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-        <div className="max-w-3xl mx-auto px-6 py-10">
-          <p className="text-gray-500 dark:text-gray-400">
-            Match not found.
-          </p>
+      <div className="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+        <div className="min-h-screen p-4 md:p-8 max-w-4xl mx-auto">
+          <p className="text-gray-700 dark:text-gray-300">Match not found.</p>
           <Link
             to="/"
             search={{
@@ -86,11 +84,19 @@ function RouteComponent() {
   }
 
   const status = getMatchStatus(match.date, match.time ?? '00:00')
+  const statusStyles = {
+    finished:
+      'border-red-200 bg-red-50 text-red-700 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-200',
+    ongoing:
+      'border-green-200 bg-green-50 text-green-700 dark:border-green-900/60 dark:bg-green-900/20 dark:text-green-200',
+    upcoming:
+      'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/60 dark:bg-blue-900/20 dark:text-blue-200',
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      <div className="max-w-4xl mx-auto px-6 py-10 space-y-8">
-        <div className="flex items-center justify-between">
+    <div className="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      <div className="min-h-screen p-4 md:p-8 max-w-4xl mx-auto space-y-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <Link
             to="/"
             search={{
@@ -103,13 +109,14 @@ function RouteComponent() {
             className="text-sm text-blue-600 dark:text-blue-300 hover:text-blue-700 dark:hover:text-blue-200">
             ← Back to matches
           </Link>
-          <span className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">
+          <span
+            className={`text-xs uppercase tracking-widest px-3 py-1 rounded-full border ${statusStyles[status]}`}>
             {status}
           </span>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-6 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 p-6 space-y-8">
+          <div className="grid gap-6 md:grid-cols-[1fr_auto_1fr] items-center">
             <div className="flex items-center gap-4">
               {match.home_team?.logo_url && (
                 <img
@@ -119,10 +126,10 @@ function RouteComponent() {
                 />
               )}
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">
                   Home
                 </p>
-                <p className="text-xl font-semibold">
+                <p className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                   {match.home_team?.name}
                 </p>
               </div>
@@ -132,17 +139,17 @@ function RouteComponent() {
               <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">
                 {match.competition?.name}
               </p>
-              <p className="text-lg font-semibold mt-2">
+              <p className="text-lg font-semibold mt-2 text-gray-900 dark:text-gray-100">
                 {match.date} {match.time ?? ''}
               </p>
             </div>
 
-            <div className="flex items-center gap-4 justify-end">
-              <div className="text-right">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex items-center gap-4 justify-start md:justify-end">
+              <div className="text-left md:text-right">
+                <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">
                   Away
                 </p>
-                <p className="text-xl font-semibold">
+                <p className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                   {match.away_team?.name ?? 'TBC'}
                 </p>
               </div>
@@ -156,42 +163,52 @@ function RouteComponent() {
             </div>
           </div>
 
-          <div>
-            <h2 className="text-lg font-semibold mb-3">Watch on</h2>
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
+              Watch on
+            </h2>
             {match.channels?.length ? (
               <div className="flex flex-wrap gap-2">
-                {match.channels.map(channel =>
-                  channel.broadcaster_id ? (
+                {match.channels.map(channel => {
+                  const hasBranding =
+                    channel.primary_color &&
+                    channel.secondary_color &&
+                    channel.text_color
+                  const tagClassName = hasBranding
+                    ? 'px-3 py-1 rounded-full text-xs font-semibold border inline-flex'
+                    : 'px-3 py-1 rounded-full text-xs font-semibold border inline-flex bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 border-gray-200 dark:border-gray-600'
+
+                  const tagStyle = hasBranding
+                    ? {
+                        backgroundColor: channel.primary_color,
+                        borderColor: channel.secondary_color,
+                        color: channel.text_color,
+                      }
+                    : undefined
+
+                  return channel.broadcaster_id ? (
                     <Link
                       key={channel.id}
                       to="/broadcaster/$broadcaster"
                       params={{
                         broadcaster: String(channel.broadcaster_id),
                       }}
-                      className="px-3 py-1 rounded text-xs font-semibold border inline-flex"
-                      style={{
-                        backgroundColor: channel.primary_color ?? '#e2e8f0',
-                        borderColor: channel.secondary_color ?? '#cbd5f5',
-                        color: channel.text_color ?? '#0f172a',
-                      }}>
+                      className={tagClassName}
+                      style={tagStyle}>
                       {channel.name}
                     </Link>
                   ) : (
                     <span
                       key={channel.id}
-                      className="px-3 py-1 rounded text-xs font-semibold border inline-flex"
-                      style={{
-                        backgroundColor: channel.primary_color ?? '#e2e8f0',
-                        borderColor: channel.secondary_color ?? '#cbd5f5',
-                        color: channel.text_color ?? '#0f172a',
-                      }}>
+                      className={tagClassName}
+                      style={tagStyle}>
                       {channel.name}
                     </span>
-                  ),
-                )}
+                  )
+                })}
               </div>
             ) : (
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 No broadcasters listed yet.
               </p>
             )}
