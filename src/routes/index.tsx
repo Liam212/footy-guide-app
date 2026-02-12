@@ -318,9 +318,6 @@ function RouteComponent() {
             {isDarkMode ? <Sun /> : <Moon />}
           </button>
         </div>
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-          Matches
-        </h1>
 
         <DateSelector
           onSelect={date => {
