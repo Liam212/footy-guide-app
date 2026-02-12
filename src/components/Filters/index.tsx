@@ -48,20 +48,20 @@ export function Filters({
     selectedBroadcasters.length > 0 || selectedChannels.length > 0,
   )
 
-  const handleCountryChange = (values: string[]) => {
-    onCountryChange?.(values.map(s => parseInt(s)))
+  const handleCountryChange = (values: number[]) => {
+    onCountryChange?.(values)
   }
 
-  const handleCompetitionChange = (values: string[]) => {
-    onCompetitionChange?.(values.map(s => parseInt(s)))
+  const handleCompetitionChange = (values: number[]) => {
+    onCompetitionChange?.(values)
   }
 
-  const handleChannelChange = (values: string[]) => {
-    onChannelChange?.(values.map(s => parseInt(s)))
+  const handleChannelChange = (values: number[]) => {
+    onChannelChange?.(values)
   }
 
-  const handleBroadcastersChange = (values: string[]) => {
-    onBroadcastersChange?.(values.map(s => parseInt(s)))
+  const handleBroadcastersChange = (values: number[]) => {
+    onBroadcastersChange?.(values)
   }
 
   const competitionsDisabled = selectedCountries.length === 0
@@ -153,13 +153,11 @@ export function Filters({
                 Country
               </label>
               <DropdownMultiSelect
-                // @ts-expect-error
                 options={countries.map(c => ({
                   key: c.id.toString(),
                   value: c.id,
                   label: c.name,
                 }))}
-                // @ts-expect-error
                 value={selectedCountries}
                 onChange={handleCountryChange}
                 placeholder="Select countries"
@@ -186,13 +184,11 @@ export function Filters({
                 Competitions
               </label>
               <DropdownMultiSelect
-                // @ts-expect-error
                 options={competitionsSorted.map(c => ({
                   key: c.id.toString(),
                   value: c.id,
                   label: c.name,
                 }))}
-                // @ts-expect-error
                 value={selectedCompetitions}
                 onChange={handleCompetitionChange}
                 placeholder={
@@ -227,13 +223,11 @@ export function Filters({
                       Broadcasters
                     </label>
                     <DropdownMultiSelect
-                      // @ts-expect-error
                       options={broadcasters.map(c => ({
                         key: c.id.toString(),
                         value: c.id,
                         label: c.name,
                       }))}
-                      // @ts-expect-error
                       value={selectedBroadcasters}
                       onChange={handleBroadcastersChange}
                       placeholder="All Broadcasters"
@@ -250,13 +244,11 @@ export function Filters({
                       Channels
                     </label>
                     <DropdownMultiSelect
-                      // @ts-expect-error
                       options={channels.map(c => ({
                         key: c.id.toString(),
                         value: c.id,
                         label: c.name,
                       }))}
-                      // @ts-expect-error
                       value={selectedChannels}
                       onChange={handleChannelChange}
                       placeholder="All Channels"
