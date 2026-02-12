@@ -20,9 +20,11 @@ const queryClient = new QueryClient({
   },
 })
 
-const dehydratedState = (window as Window & {
-  __REACT_QUERY_STATE__?: unknown
-}).__REACT_QUERY_STATE__
+const dehydratedState = (
+  window as Window & {
+    __REACT_QUERY_STATE__?: unknown
+  }
+).__REACT_QUERY_STATE__
 
 if (dehydratedState) {
   hydrate(queryClient, dehydratedState)

@@ -1,7 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
+import { format, parseISO } from 'date-fns'
+import { Moon, Sun } from 'lucide-react'
 import { api } from '../api'
+import { ChannelPills } from '../components/ChannelPills'
 import isNumeric from '../helpers/isNumeric'
 import { getMatchStatus } from '../helpers/matchStatus'
 import type { Match } from '../types'
@@ -22,10 +25,11 @@ export const Route = createFileRoute('/matches/$matchId')({
     }
 
     try {
-      return await context.queryClient.fetchQuery({
+      const match = await context.queryClient.fetchQuery({
         queryKey: matchQueryKey(matchId),
         queryFn: () => fetchMatch(matchId),
       })
+      return match
     } catch {
       return null
     }
@@ -37,6 +41,13 @@ function RouteComponent() {
   const { matchId } = Route.useParams()
   const loaderData = Route.useLoaderData() as Match | null
   const isMatchIdValid = isNumeric(matchId)
+  const getInitialDarkMode = () => {
+    if (typeof window === 'undefined') return true
+    const stored = localStorage.getItem('darkMode')
+    if (stored !== null) return stored === 'true'
+    return true
+  }
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(getInitialDarkMode)
   const { data: match, isLoading } = useQuery({
     queryKey: matchQueryKey(matchId),
     queryFn: () => fetchMatch(matchId),
@@ -50,6 +61,15 @@ function RouteComponent() {
     const away = match.away_team?.name ?? ''
     document.title = away ? `${home} vs ${away} | Footy Guide` : home
   }, [match])
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+    localStorage.setItem('darkMode', isDarkMode.toString())
+  }, [isDarkMode])
 
   if (isLoading) {
     return (
@@ -84,6 +104,13 @@ function RouteComponent() {
   }
 
   const status = getMatchStatus(match.date, match.time ?? '00:00')
+  const matchDayLabel = (() => {
+    try {
+      return format(parseISO(match.date), 'EEE, MMM d')
+    } catch {
+      return match.date
+    }
+  })()
   const statusStyles = {
     finished:
       'border-red-200 bg-red-50 text-red-700 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-200',
@@ -100,19 +127,28 @@ function RouteComponent() {
           <Link
             to="/"
             search={{
-              date: undefined,
+              date: match.date,
               sports: undefined,
               countries: undefined,
               competitions: undefined,
               broadcasters: undefined,
             }}
             className="text-sm text-blue-600 dark:text-blue-300 hover:text-blue-700 dark:hover:text-blue-200">
-            ← Back to matches
+            ← See more on {matchDayLabel}
           </Link>
-          <span
-            className={`text-xs uppercase tracking-widest px-3 py-1 rounded-full border ${statusStyles[status]}`}>
-            {status}
-          </span>
+          <div className="flex items-center gap-3">
+            <span
+              className={`text-xs uppercase tracking-widest px-3 py-1 rounded-full border ${statusStyles[status]}`}>
+              {status}
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsDarkMode(prev => !prev)}
+              className="text-gray-800 dark:text-gray-200 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition focus:outline-none"
+              aria-label="Toggle dark mode">
+              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+          </div>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 p-6 space-y-8">
@@ -135,13 +171,31 @@ function RouteComponent() {
               </div>
             </div>
 
-            <div className="text-center">
-              <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                {match.competition?.name}
-              </p>
-              <p className="text-lg font-semibold mt-2 text-gray-900 dark:text-gray-100">
-                {match.date} {match.time ?? ''}
-              </p>
+            <div className="text-center space-y-2">
+              <div>
+                <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                  Competition
+                </p>
+                <p className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                  {match.competition?.name ?? 'TBC'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                  Kickoff
+                </p>
+                <div className="flex flex-col items-center gap-1">
+                  <p className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                    {match.date}
+                  </p>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Time
+                  </p>
+                  <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-3 py-1 text-base font-semibold text-gray-900 dark:text-gray-100">
+                    {match.time ?? 'TBC'}
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center gap-4 justify-start md:justify-end">
@@ -168,45 +222,12 @@ function RouteComponent() {
               Watch on
             </h2>
             {match.channels?.length ? (
-              <div className="flex flex-wrap gap-2">
-                {match.channels.map(channel => {
-                  const hasBranding =
-                    channel.primary_color &&
-                    channel.secondary_color &&
-                    channel.text_color
-                  const tagClassName = hasBranding
-                    ? 'px-3 py-1 rounded-full text-xs font-semibold border inline-flex'
-                    : 'px-3 py-1 rounded-full text-xs font-semibold border inline-flex bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 border-gray-200 dark:border-gray-600'
-
-                  const tagStyle = hasBranding
-                    ? {
-                        backgroundColor: channel.primary_color,
-                        borderColor: channel.secondary_color,
-                        color: channel.text_color,
-                      }
-                    : undefined
-
-                  return channel.broadcaster_id ? (
-                    <Link
-                      key={channel.id}
-                      to="/broadcaster/$broadcaster"
-                      params={{
-                        broadcaster: String(channel.broadcaster_id),
-                      }}
-                      className={tagClassName}
-                      style={tagStyle}>
-                      {channel.name}
-                    </Link>
-                  ) : (
-                    <span
-                      key={channel.id}
-                      className={tagClassName}
-                      style={tagStyle}>
-                      {channel.name}
-                    </span>
-                  )
-                })}
-              </div>
+              <ChannelPills
+                channels={match.channels}
+                containerClassName="flex flex-wrap gap-2"
+                pillClassName="px-3 py-1 rounded-full text-xs font-semibold border inline-flex"
+                fallbackClassName="px-3 py-1 rounded-full text-xs font-semibold border inline-flex bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-100 border-gray-200 dark:border-gray-600"
+              />
             ) : (
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 No broadcasters listed yet.

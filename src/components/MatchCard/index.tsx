@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { Share2 } from 'lucide-react'
 import { getMatchStatus, type MatchStatus } from '../../helpers/matchStatus'
+import { ChannelPills } from '../ChannelPills'
 
 interface MatchCardProps {
   id: number
@@ -114,21 +115,12 @@ export function MatchCard({
           className={`text-sm ${view === 'grid' ? 'sm:text-xs' : 'sm:text-base '} text-gray-600 dark:text-gray-300 mt-1`}>
           {competition.name}
         </p>
-        <div className="flex flex-wrap mt-2 gap-2">
-          {channels.map(channel => (
-            <a key={channel.id} href={`/broadcaster/${channel.broadcaster_id}`}>
-              <span
-                className="px-2 py-0.5 rounded text-xs font-semibold"
-                style={{
-                  backgroundColor: channel.primary_color,
-                  border: `1px solid ${channel.secondary_color}`,
-                  color: channel.text_color,
-                }}>
-                {channel.name}
-              </span>
-            </a>
-          ))}
-        </div>
+        <ChannelPills
+          channels={channels}
+          containerClassName="flex flex-wrap gap-2 mt-2"
+          fallbackClassName="px-3 py-1 rounded-full text-xs font-semibold border inline-flex"
+          pillClassName="px-2 py-0.5 rounded text-xs font-semibold"
+        />
       </div>
       <div className="flex flex-col items-start sm:items-end text-gray-800 dark:text-gray-100 text-sm sm:text-base font-medium">
         <span className="text-lg font-semibold tracking-wide">{time}</span>
