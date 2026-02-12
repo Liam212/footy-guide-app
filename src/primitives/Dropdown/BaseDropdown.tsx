@@ -8,6 +8,7 @@ interface BaseDropdownProps {
   onClose?: () => void
   children: ReactNode
   className?: string
+  disabled?: boolean
 }
 
 export function BaseDropdown({
@@ -17,6 +18,7 @@ export function BaseDropdown({
   onClose,
   children,
   className = '',
+  disabled = false,
 }: BaseDropdownProps) {
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -40,10 +42,15 @@ export function BaseDropdown({
     <div ref={dropdownRef} className={`relative ${className}`}>
       <button
         type="button"
-        onClick={onToggle}
+        onClick={disabled ? undefined : onToggle}
+        disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg flex justify-between items-center text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+        className={`w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg flex justify-between items-center text-gray-900 dark:text-gray-100 transition ${
+          disabled
+            ? 'opacity-60 cursor-not-allowed'
+            : 'hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500'
+        }`}>
         {label}
         <ChevronDown size={18} className="ml-2 opacity-70" />
       </button>
