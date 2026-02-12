@@ -19,7 +19,7 @@ export function MatchesView({
   }
 
   for (const match of data) {
-    const status = getMatchStatus(match.date, match.time)
+    const status = getMatchStatus(match.date, match.time, match.sport_id)
     grouped[status].push(match)
   }
 

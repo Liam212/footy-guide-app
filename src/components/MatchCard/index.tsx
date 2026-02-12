@@ -5,6 +5,7 @@ import { ChannelPills } from '../ChannelPills'
 
 interface MatchCardProps {
   id: number
+  sport_id?: number
   channels: {
     id: number
     name: string
@@ -30,8 +31,9 @@ export function MatchCard({
   match: MatchCardProps
   view?: 'list' | 'grid'
 }) {
-  const { channels, time, date, competition, home_team, away_team } = match
-  const status = match.status ?? getMatchStatus(date, time)
+  const { channels, time, date, competition, home_team, away_team, sport_id } =
+    match
+  const status = match.status ?? getMatchStatus(date, time, sport_id)
   const [shareState, setShareState] = useState<
     'idle' | 'copied' | 'shared' | 'error'
   >('idle')

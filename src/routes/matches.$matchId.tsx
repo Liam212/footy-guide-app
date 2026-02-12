@@ -103,7 +103,7 @@ function RouteComponent() {
     )
   }
 
-  const status = getMatchStatus(match.date, match.time ?? '00:00')
+  const status = getMatchStatus(match.date, match.time, match.sport_id)
   const matchDayLabel = (() => {
     try {
       return format(parseISO(match.date), 'EEE, MMM d')
